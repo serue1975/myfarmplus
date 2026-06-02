@@ -1,0 +1,2096 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>🌿 My Farm Plus | 영농일지 (MO)</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#F6F7F8;--white:#fff;--border:#EBEDEF;--border-input:#D0D4D7;
+  --text:#464A4E;--sub:#6D7379;--hint:#A0A6AC;
+  --primary:#1F69FF;--pbg:#E4EDFF;--pdark:#1758E0;
+  --btn-search:#5A5F63;--error:#FF1919;
+  --tab-h:64px;--top-h:56px;
+  --tag-green-bg:#CCF5E2;--tag-green-c:#008949;
+  --tag-blue-bg:#E4EDFF; --tag-blue-c:#1F69FF;
+  --tag-orange-bg:#FFEBD5;--tag-orange-c:#FF6200;
+  --tag-purple-bg:#EBE7FF;--tag-purple-c:#851FF9;
+  --tag-gray-bg:#F1F2F4; --tag-gray-c:#6D7379;
+}
+html,body{height:100%;overflow:hidden;font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);letter-spacing:-0.02em}
+
+/* ── 앱 래퍼 ── */
+.app{position:fixed;inset:0;display:flex;flex-direction:column;max-width:430px;margin:0 auto;background:var(--white);box-shadow:0 0 40px rgba(0,0,0,.12)}
+.screens{flex:1;position:relative;overflow:hidden;padding-bottom:var(--tab-h)}
+.screen{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#ffffff;transition:opacity .2s,transform .2s}
+.screen.hidden{opacity:0;pointer-events:none;transform:translateX(20px)}
+
+/* ── 상단 앱바 ── */
+.appbar{height:var(--top-h);background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:8px;flex-shrink:0;position:sticky;top:0;z-index:20}
+.appbar-title{font-size:18px;font-weight:800;color:var(--text);flex:1;letter-spacing:-0.4px}
+.appbar-back{width:28px;height:40px;display:flex;align-items:center;justify-content:flex-start;border:none;background:none;cursor:pointer;color:var(--sub);flex-shrink:0;padding:0}
+.appbar-back svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.appbar-action{height:36px;padding:0 14px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-family:'Pretendard',sans-serif;font-size:13px;font-weight:700;display:flex;align-items:center;gap:4px;cursor:pointer}
+.appbar-icon{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:none;background:none;cursor:pointer;color:var(--sub)}
+.appbar-icon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+
+/* ── 하단 탭바 ── */
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:var(--tab-h);background:#fff;box-shadow:0 -2px 8px rgba(0,0,0,.06);display:flex;align-items:stretch;padding-top:7px;padding-bottom:calc(7px + env(safe-area-inset-bottom));z-index:40;transition:transform .28s cubic-bezier(.4,0,.2,1)}
+.tabbar.hidden{transform:translateX(-50%) translateY(100%)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:#A0A6AC;transition:color .15s;border:none;background:none;padding:0}
+.tab.on{color:#1D1F20}
+.tab svg{width:28px;height:28px}
+.tab-lb{font-size:12px;font-weight:400;letter-spacing:-0.24px;line-height:1.3;color:inherit}
+
+/* ── FAB 등록 버튼 ── */
+.fab{position:fixed;bottom:calc(var(--tab-h) + 16px);right:calc(50% - 430px/2 + 20px);width:52px;height:52px;border-radius:50%;background:var(--primary);border:none;cursor:pointer;box-shadow:0 4px 16px rgba(31,105,255,.4);display:flex;align-items:center;justify-content:center;z-index:50;transition:transform .15s, opacity .28s, box-shadow .15s}
+.fab:active{transform:scale(.94)}
+.fab svg{width:24px;height:24px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round}
+@media (max-width:430px){.fab{right:20px}}
+
+/* ── 리스트 화면 ── */
+.list-filter{background:var(--white);padding:14px 16px;border-bottom:1px solid var(--border)}
+.log-list{padding:0;display:flex;flex-direction:column;padding-bottom:80px}
+.log-card{background:#fff;cursor:pointer}
+.lc-divider{height:8px;background:#F6F7F8;flex-shrink:0}
+.type-tag{display:inline-flex;align-items:center;height:28px;padding:4px 8px;border-radius:6px;font-size:13px;font-weight:700;letter-spacing:-0.26px;white-space:nowrap}
+.tt-green{background:#CCF5E2;color:#008949}
+.tt-blue{background:#E4EDFF;color:#1F69FF}
+.tt-orange{background:#FFEBD5;color:#FF6200}
+.tt-purple{background:#EBE7FF;color:#851FF9}
+.tt-gray{background:#F1F2F4;color:#6D7379}
+
+/* ── 상세 화면 ── */
+.det-body{padding:0 0 80px}
+.det-head{padding:0 20px 16px;border-bottom:1px solid #E3E5E8}
+.det-date-row{display:flex;align-items:baseline;gap:4px;padding-bottom:0}
+.det-date-big{font-size:22px;font-weight:700;color:#1D1F20;letter-spacing:-0.44px;line-height:1.3}
+.det-day{font-size:15px;font-weight:700;color:#A0A6AC;letter-spacing:-0.3px}
+.det-sections{display:flex;flex-direction:column;gap:40px;padding:32px 20px 0}
+.det-sec{display:flex;flex-direction:column;gap:12px}
+.det-sec-lbl{font-size:14px;font-weight:700;color:#1D1F20;letter-spacing:-0.28px}
+.det-plot-addr{font-size:18px;font-weight:700;color:#1D1F20;letter-spacing:-0.36px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.det-plot-meta{display:flex;align-items:center;justify-content:space-between}
+.det-plot-area{font-size:13px;font-weight:600;color:#888F95;letter-spacing:-0.26px}
+.det-plot-more{display:flex;align-items:center;gap:2px;background:none;border:none;cursor:pointer;font-family:'Pretendard',sans-serif;font-size:13px;font-weight:700;color:var(--primary);letter-spacing:-0.26px;padding:0;white-space:nowrap}
+.det-plot-more svg{width:14px;height:14px;stroke:var(--primary);fill:none;stroke-width:2;stroke-linecap:round}
+.det-crop-box{background:#F6F7F8;border-radius:6px;height:56px;display:flex;align-items:center;padding:0 16px}
+.det-crop-val{font-size:16px;font-weight:700;color:var(--primary);letter-spacing:-0.32px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.det-type-list{display:flex;flex-direction:column;gap:6px}
+.det-type-row{height:56px;padding:0 12px;background:#F9FAFB;border-radius:6px;display:flex;align-items:center;gap:12px}
+.det-type-badge{height:28px;padding:0 8px;border-radius:6px;display:inline-flex;align-items:center;font-size:13px;font-weight:700;white-space:nowrap;flex-shrink:0}
+.det-type-txt{font-size:15px;font-weight:700;color:#464A4E;letter-spacing:-0.3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.det-type-sep{font-size:14px;color:#D0D4D7;margin:0 4px;flex-shrink:0}
+.det-content-txt{font-size:15px;font-weight:400;color:#464A4E;letter-spacing:-0.3px;line-height:1.3}
+.det-photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.det-photo-item{aspect-ratio:1/1;border-radius:8px;object-fit:cover;cursor:pointer;transition:transform .15s;width:100%}
+.det-photo-item:active{transform:scale(.97)}
+
+/* ══════════════════════════════════════
+   ── 등록 화면 (Figma 디자인 반영) ──
+══════════════════════════════════════ */
+
+/* 폼 스크롤 영역 */
+.form-scroll{padding:0 0 140px}
+
+/* 페이지 헤딩 */
+.form-heading-wrap{padding:16px 20px 16px}
+.form-heading{font-size:22px;font-weight:700;color:#1D1F20;letter-spacing:-0.44px;line-height:1.3}
+.form-heading-divider{height:1px;background:var(--border);margin:0 0 0}
+
+/* 폼 섹션 공통 */
+.form-sec-new{padding:28px 20px 0}
+.form-lbl-new{font-size:14px;font-weight:700;color:#1D1F20;letter-spacing:-0.28px;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.form-lbl-opt{font-size:12px;font-weight:600;color:var(--hint);letter-spacing:-0.24px}
+
+/* 인풋 공통 52px */
+.inp-new{width:100%;height:52px;padding:0 16px;border:1px solid #E3E5E8;border-radius:6px;background:#F9FAFB;font-family:'Pretendard',sans-serif;font-size:16px;font-weight:500;color:var(--text);outline:none;transition:border .15s;letter-spacing:-0.32px}
+.inp-new::placeholder{color:var(--hint)}
+.inp-new:focus{border-color:var(--primary);background:#fff}
+
+/* 날짜 박스 */
+.date-row-new{display:flex;align-items:center;gap:5px}
+.date-box-new{flex:1;height:52px;padding:0 12px;border:1px solid #E3E5E8;border-radius:8px;background:#F9FAFB;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;font-weight:600;color:#1D1F20;letter-spacing:-0.32px}
+.date-box-new.active{border-color:var(--primary);background:#fff}
+.date-sep-new{color:var(--sub);font-size:14px;font-weight:600;flex-shrink:0}
+
+/* 필지 불러오기 버튼 */
+.btn-plot-load{width:100%;height:44px;border:1px solid #AFCAFF;border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-family:'Pretendard',sans-serif;font-size:15px;font-weight:600;color:var(--primary);letter-spacing:-0.3px;margin-top:8px}
+.btn-plot-load svg{width:20px;height:20px;stroke:var(--primary);fill:none;stroke-width:2;stroke-linecap:round}
+
+/* 선택된 필지 영역 */
+.plot-selected-area{padding:4px 0 16px;border-bottom:1px solid #E3E5E8;margin-top:16px}
+.plot-selected-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.plot-selected-title{font-size:14px;font-weight:600;color:var(--text);letter-spacing:-0.28px;display:flex;align-items:center;gap:4px}
+.plot-selected-count{font-size:14px;font-weight:700;color:#3A7CFF}
+.plot-clear-all{font-size:13px;font-weight:700;color:var(--hint);background:none;border:none;cursor:pointer;letter-spacing:-0.26px}
+
+/* 선택된 필지 칩 */
+.plot-chips-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.plot-chip{height:32px;padding:0 10px;background:#EEF4FF;border:1px solid #95B8FF;border-radius:4px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--primary);letter-spacing:-0.26px;white-space:nowrap;max-width:calc((100% - 12px) / 3)}
+.plot-chip-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.plot-chip-x{width:12px;height:12px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--primary);flex-shrink:0;padding:0}
+.plot-chip-x svg{width:10px;height:10px;stroke:currentColor;stroke-width:2;fill:none}
+.plot-chips-more-row{width:100%;margin-top:6px}
+.plot-chip-more{height:32px;padding:0 16px;background:var(--primary);border-radius:50px;border:none;display:inline-flex;align-items:center;font-size:14px;font-weight:700;color:#fff;letter-spacing:-0.28px;cursor:pointer;white-space:nowrap}
+
+/* 최근 작성 필지 */
+.recent-plots-area{margin-top:16px}
+.recent-plots-lbl{font-size:12px;font-weight:600;color:#888F95;letter-spacing:-0.24px;margin-bottom:6px}
+.recent-chips-row{display:flex;gap:6px;flex-wrap:wrap}
+.recent-chip{height:32px;padding:0 8px;background:#F6F7F8;border-radius:4px;display:inline-flex;align-items:center;font-size:13px;font-weight:500;color:var(--text);letter-spacing:-0.26px;cursor:pointer;white-space:nowrap;border:none}
+.recent-chip:active{background:#E4EDFF;color:var(--primary)}
+.btn-more-recent{display:flex;align-items:center;gap:2px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;color:var(--primary);letter-spacing:-0.26px;padding:8px 0 0;font-family:'Pretendard',sans-serif}
+
+/* 작업 내용 textarea */
+.textarea-new{width:100%;height:160px;padding:16px;border:1px solid #E3E5E8;border-radius:8px;background:#F9FAFB;font-family:'Pretendard',sans-serif;font-size:14px;font-weight:500;color:var(--text);outline:none;resize:none;line-height:1.6;letter-spacing:-0.28px;transition:border .15s}
+.textarea-new::placeholder{color:var(--hint)}
+.textarea-new:focus{border-color:var(--primary);background:#fff}
+.char-cnt-new{text-align:right;font-size:12px;color:var(--hint);margin-top:4px;letter-spacing:-0.24px}
+.char-cnt-new span{color:var(--sub)}
+
+/* 작업 유형 칩 (pill) */
+.type-chips-scroll{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.type-chips-scroll::-webkit-scrollbar{display:none}
+.chip-type-pill{height:36px;padding:0 18px 0 14px;border:1px solid #AFCAFF;border-radius:100px;background:#fff;display:inline-flex;align-items:center;gap:4px;font-family:'Pretendard',sans-serif;font-size:14px;font-weight:700;color:var(--primary);letter-spacing:-0.28px;cursor:pointer;flex-shrink:0;white-space:nowrap}
+.chip-type-pill svg{width:14px;height:14px;stroke:var(--primary);fill:none;stroke-width:2.5;stroke-linecap:round;flex-shrink:0}
+.chip-type-pill:active{background:#EEF4FF}
+.type-note-new{font-size:13px;font-weight:500;color:var(--hint);letter-spacing:-0.26px;margin-top:10px;line-height:1.5}
+
+/* 추가된 작업유형 카드 */
+.type-cards-area{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.type-card-item{display:flex;align-items:center;gap:12px;height:48px;padding:0 12px;background:#F9FAFB;border:1px solid #E3E5E8;border-radius:6px;cursor:pointer}
+
+/* 사진 추가 버튼 */
+.btn-photo-add{width:100%;height:48px;border:1px solid #AFCAFF;border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-family:'Pretendard',sans-serif;font-size:15px;font-weight:600;color:var(--primary);letter-spacing:-0.3px}
+.btn-photo-add svg{width:20px;height:20px;stroke:var(--primary);fill:none;stroke-width:2;stroke-linecap:round}
+
+/* 사진 썸네일 */
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:100%;margin-bottom:8px}
+.photo-thumb{aspect-ratio:1/1;border-radius:8px;position:relative;overflow:hidden;background:#F1F2F4}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-del{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.55);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff}
+.photo-del svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round}
+.btn-photo-add.disabled{border-color:#D0D4D7;color:#BABFC4;cursor:default}
+.photo-max-msg{font-size:13px;font-weight:600;color:#FF1919;letter-spacing:-0.26px;margin-top:6px}
+/* ── 갤러리 오버레이 ── */
+.gallery-ov{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.gallery-ov.open{opacity:1;pointer-events:all}
+.gallery-close{position:absolute;top:calc(env(safe-area-inset-top) + 16px);right:16px;width:40px;height:40px;background:rgba(255,255,255,0.15);border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;z-index:10}
+.gallery-close svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.gallery-main{width:100vw;height:100vw;max-height:60vh;object-fit:cover;display:block;flex-shrink:0}
+.gallery-thumbs{width:100%;display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:0 20px;margin-top:16px;flex-shrink:0}
+.gallery-thumb{aspect-ratio:1/1;border-radius:8px;object-fit:cover;cursor:pointer;border:2px solid transparent;transition:border-color .15s;width:100%}
+.gallery-thumb.active{border-color:#00ED00}
+/* ── 토스트 ── */
+.toast{position:fixed;top:calc(62px + 8px);left:50%;transform:translateX(-50%) translateY(-8px);background:#111827;color:#fff;font-size:14px;font-weight:600;letter-spacing:-0.28px;padding:13px 20px;border-radius:100px;z-index:9999;white-space:nowrap;display:flex;align-items:center;gap:8px;opacity:0;transition:opacity .2s, transform .2s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast-icon{width:20px;height:20px;border-radius:50%;background:#22C55E;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.toast-icon svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.crop-chips-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.crop-chip-sel{height:28px;padding:0 10px;background:#E4EDFF;border:1px solid #AFCAFF;border-radius:14px;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;flex-shrink:0;letter-spacing:-0.24px}
+.crop-chip-sel svg{width:8px;height:8px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round}
+
+/* 하단 버튼 영역 */
+.form-footer{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top:1px solid var(--border);padding:12px 20px;padding-bottom:calc(12px + env(safe-area-inset-bottom));display:flex;gap:8px;z-index:30}
+.btn-cancel{width:88px;height:56px;border-radius:6px;border:1.5px solid #BABFC4;background:#fff;font-family:'Pretendard',sans-serif;font-size:18px;font-weight:700;color:var(--text);cursor:pointer;flex-shrink:0;letter-spacing:-0.36px}
+.btn-submit-new{flex:1;height:56px;border-radius:6px;border:none;background:#E3E5E8;font-family:'Pretendard',sans-serif;font-size:18px;font-weight:700;color:#fff;cursor:default;transition:background .2s;letter-spacing:-0.36px}
+.btn-submit-new.on{background:var(--primary);cursor:pointer}
+
+/* 캘린더 팝업 */
+.cal-popup{position:absolute;top:calc(100% + 8px);left:0;right:0;background:var(--white);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.14);z-index:300;padding:16px;display:none;width:100%}
+.cal-popup.open{display:block}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-ym{font-size:15px;font-weight:800}
+.cal-nav{width:32px;height:32px;border-radius:8px;background:var(--bg);border:none;cursor:pointer;font-size:16px;color:var(--sub);display:flex;align-items:center;justify-content:center}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px}
+.cal-dow span{text-align:center;font-size:11px;font-weight:700;color:var(--hint);padding:4px 0}
+.cal-dow span:first-child{color:#EF4444}.cal-dow span:last-child{color:#3B82F6}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cc{height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:all .1s}
+.cc:hover:not(.empty):not(.dis){background:#F0F5FF;color:var(--primary)}
+.cc.empty,.cc.dis{pointer-events:none}.cc.dis{color:#D1D5DB}
+.cc.sel{background:var(--primary);color:#fff;font-weight:700}
+.cc.rng{background:var(--pbg);border-radius:0}
+.cc.rng-s{background:var(--primary);color:#fff;border-radius:8px 0 0 8px}
+.cc.rng-e{background:var(--primary);color:#fff;border-radius:0 8px 8px 0}
+.cc.rng-s.rng-e{border-radius:8px}
+.cc.sun{color:#EF4444}.cc.sun.sel,.cc.sun.rng-s,.cc.sun.rng-e{color:#fff}
+.cc.sat{color:#3B82F6}.cc.sat.sel,.cc.sat.rng-s,.cc.sat.rng-e{color:#fff}
+
+/* ── 모달 / 바텀시트 ── */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.ov.open{opacity:1;pointer-events:all}
+.sheet{background:var(--white);border-radius:20px 20px 0 0;max-height:90vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.34,1.1,.64,1);width:100%;max-width:430px}
+.ov.open .sheet{transform:translateY(0)}
+.sheet-handle{width:36px;height:4px;background:#D1D5DB;border-radius:2px;margin:12px auto 0}
+.sheet-hd{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px}
+.sheet-title{font-size:16px;font-weight:800}
+.sheet-close{width:30px;height:30px;border-radius:8px;background:var(--bg);border:none;cursor:pointer;font-size:16px;color:var(--sub);display:flex;align-items:center;justify-content:center}
+.sheet-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sheet-foot{padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--border)}
+.btn-sheet-apply{width:100%;height:48px;border-radius:12px;border:none;background:var(--primary);color:#fff;font-family:'Pretendard',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.btn-sheet-apply:disabled{background:#D1D5DB}
+.btn-sheet-foot-row{display:flex;gap:8px;align-items:center}
+.btn-type-del{height:48px;padding:0 20px;border-radius:10px;border:1.5px solid #FEE2E2;background:#FEF2F2;font-family:'Pretendard',sans-serif;font-size:14px;font-weight:700;color:var(--error);cursor:pointer;flex-shrink:0;white-space:nowrap;display:flex;align-items:center;justify-content:center;line-height:1}
+.btn-type-apply{flex:1;height:48px;border-radius:10px;border:none;background:var(--primary);color:#fff;font-family:'Pretendard',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+
+/* 작업유형 바텀시트 인풋 */
+.ci{width:100%;height:48px;padding:0 16px;border:1px solid #E3E5E8;border-radius:8px;background:#F9FAFB;font-family:'Pretendard',sans-serif;font-size:16px;font-weight:500;color:var(--text);outline:none;margin-bottom:8px;letter-spacing:-0.32px}
+.ci:focus{border-color:var(--primary);background:#fff;outline:none}
+.ci::placeholder{color:var(--hint)}
+
+/* 필지 바텀시트 */
+.pm-search{width:100%;height:42px;border:1px solid var(--border);border-radius:10px;padding:0 14px;font-family:'Pretendard',sans-serif;font-size:14px;outline:none;background:#F9FAFB}
+.pm-search:focus{border-color:var(--primary);background:#fff}
+.pm-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);background:#fff;cursor:pointer;margin-bottom:8px}
+.pm-item.sel{border-color:var(--primary);background:#EEF3FF}
+.pm-item input[type=checkbox]{width:20px;height:20px;accent-color:var(--primary);flex-shrink:0}
+.pm-addr .main{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px}
+.pm-addr .sub1{font-size:11px;color:var(--sub)}
+
+/* 캘린더 화면 */
+.cal-popup-date{position:relative}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── 최근 작성 필지 전체 페이지 ── */
+.rp-appbar{height:56px;background:#fff;display:flex;align-items:center;padding:0 16px;flex-shrink:0;position:sticky;top:0;z-index:20}
+.rp-close{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:none;background:none;cursor:pointer;color:var(--text)}
+.rp-close svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.rp-heading{font-size:22px;font-weight:700;color:#1D1F20;letter-spacing:-0.44px;line-height:1.3;padding:12px 20px 16px}
+.rp-select-bar{display:flex;align-items:center;justify-content:space-between;padding:0 20px 12px}
+.rp-select-all{display:flex;align-items:center;gap:8px;cursor:pointer}
+.rp-select-all-lbl{font-size:14px;font-weight:500;color:#464A4E;letter-spacing:-0.28px}
+.rp-total{font-size:14px;letter-spacing:-0.28px;display:flex;gap:4px}
+.rp-total-lbl{font-weight:500;color:#464A4E}
+.rp-total-cnt{font-weight:700;color:#3A7CFF}
+.rp-list{padding:0 20px;display:flex;flex-direction:column;gap:8px;padding-bottom:100px}
+.rp-item{background:#fff;border:1px solid #EBEDEF;border-radius:6px;padding:16px;display:flex;gap:12px;align-items:flex-start;cursor:pointer;transition:all .15s}
+.rp-item.sel{background:#EEF4FF;border-color:var(--primary)}
+.rp-cb{width:24px;height:24px;border-radius:6px;border:1.5px solid #D0D4D7;background:#F9FAFB;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.rp-item.sel .rp-cb{background:var(--primary);border-color:var(--primary)}
+.rp-cb svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity .15s}
+.rp-item.sel .rp-cb svg{opacity:1}
+.rp-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.rp-addr{font-size:16px;font-weight:600;color:#464A4E;letter-spacing:-0.32px;line-height:1.3}
+.rp-date{font-size:13px;font-weight:500;color:#A0A6AC;letter-spacing:-0.26px}
+.rp-footer{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;padding:12px 20px;padding-bottom:calc(12px + env(safe-area-inset-bottom));z-index:30}
+.rp-btn{width:100%;height:56px;border-radius:6px;border:none;background:var(--primary);font-family:'Pretendard',sans-serif;font-size:18px;font-weight:700;color:#fff;cursor:pointer;letter-spacing:-0.36px;transition:background .15s}
+.rp-btn:disabled{background:#D1D5DB;cursor:default}
+/* ── 선택된 필지 전체 페이지 ── */
+.sp-appbar{height:56px;background:#fff;display:flex;align-items:center;padding:0 16px;flex-shrink:0;position:sticky;top:0;z-index:20}
+.sp-close{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:none;background:none;cursor:pointer;color:var(--text)}
+.sp-close svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.sp-heading{font-size:22px;font-weight:700;letter-spacing:-0.44px;line-height:1.3;padding:12px 20px 16px;display:flex;gap:6px;align-items:baseline}
+.sp-heading-lbl{color:#1D1F20}
+.sp-heading-cnt{color:var(--primary)}
+.sp-list{padding:0 20px;padding-bottom:100px}
+.sp-row{display:flex;align-items:center;gap:4px;padding:14px 4px;border-bottom:1px solid #EBEDEF}
+.sp-row-addr{flex:1;min-width:0;font-size:16px;font-weight:600;color:#464A4E;letter-spacing:-0.32px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sp-row-del{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:none;background:none;cursor:pointer;flex-shrink:0;color:#BABFC4}
+.sp-row-del svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.sp-row-del:active{color:var(--error)}
+/* ── 필지 그룹 선택 페이지 ── */
+.pg-list{padding:0 20px;display:flex;flex-direction:column;gap:8px;padding-bottom:100px}
+.pg-item{background:#fff;border:1px solid #EBEDEF;border-radius:6px;padding:16px;display:flex;gap:10px;align-items:flex-start;cursor:pointer;transition:all .15s}
+.pg-item.sel{background:#EEF4FF;border-color:var(--primary)}
+.pg-radio{width:20px;height:20px;border-radius:50%;border:2px solid #D0D4D7;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;margin-top:2px;cursor:pointer;}
+.pg-item.sel .pg-radio{border-color:var(--primary);background:var(--primary)}
+.pg-radio-dot{width:6px;height:6px;border-radius:50%;background:#fff;opacity:0;transition:opacity .15s}
+.pg-item.sel .pg-radio-dot{opacity:1}
+.pg-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.pg-name{font-size:18px;font-weight:700;color:#383B3E;letter-spacing:-0.36px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pg-addr{font-size:13px;font-weight:500;color:#888F95;letter-spacing:-0.26px;line-height:1.3}
+.pg-cnt{display:flex;align-items:center;gap:2px;font-size:14px;font-weight:500;color:#888F95;letter-spacing:-0.28px}
+.pg-cnt svg{width:16px;height:16px;flex-shrink:0}
+.pg-arrow{width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#D0D4D7;align-self:center}
+.pg-arrow svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pg-total{font-size:14px;letter-spacing:-0.28px;display:flex;gap:4px;padding:0 20px 12px}
+.pg-total-lbl{font-weight:500;color:#464A4E}
+.pg-total-cnt{font-weight:700;color:#3A7CFF}
+
+/* ── 개별 필지 선택 페이지 ── */
+.pi-appbar{height:56px;background:#fff;display:flex;align-items:center;padding:0 16px;flex-shrink:0;position:sticky;top:0;z-index:20;border-bottom:none}
+.pi-back{width:32px;height:40px;display:flex;align-items:center;justify-content:flex-start;border:none;background:none;cursor:pointer;color:var(--text)}
+.pi-back svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.pi-heading{font-size:22px;font-weight:700;color:#1D1F20;letter-spacing:-0.44px;line-height:1.3;padding:12px 20px 16px}
+.pi-list{padding:0 20px;display:flex;flex-direction:column;gap:8px;padding-bottom:100px}
+.pi-item{background:#fff;border:1px solid #EBEDEF;border-radius:6px;padding:16px;display:flex;gap:12px;align-items:flex-start;cursor:pointer;transition:all .15s}
+.pi-item.sel{background:#EEF4FF;border-color:var(--primary)}
+.pi-cb{width:24px;height:24px;border-radius:6px;border:1.5px solid #D0D4D7;background:#F9FAFB;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.pi-item.sel .pi-cb{background:var(--primary);border-color:var(--primary)}
+.pi-cb svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity .15s}
+.pi-item.sel .pi-cb svg{opacity:1}
+.pi-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.pi-addr{font-size:16px;font-weight:600;color:#464A4E;letter-spacing:-0.32px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pi-area{font-size:13px;font-weight:600;color:#888F95;letter-spacing:-0.26px}
+.pi-select-bar{display:flex;align-items:center;justify-content:space-between;padding:0 20px 12px}
+/* ── 주소 자동완성 드롭다운 ── */
+.addr-wrap{position:relative}
+.addr-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #E3E5E8;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:100;display:none;overflow:hidden}
+.addr-dropdown.open{display:block}
+.addr-item{padding:14px 16px;font-size:15px;font-weight:500;color:#464A4E;letter-spacing:-0.3px;cursor:pointer;border-bottom:1px solid #F3F4F6}
+.addr-item:last-child{border-bottom:none}
+.addr-item:active{background:#F0F5FF}
+.addr-item em{color:var(--primary);font-style:normal;font-weight:700}
+.sp-empty{padding:48px 20px;text-align:center;font-size:15px;color:var(--hint);font-weight:500}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="screens" id="screensWrap">
+
+    <!-- ═══ LIST ═══ -->
+    <div class="screen" id="screen-list">
+
+      <!-- 영농일지 타이틀 -->
+      <div style="padding:20px 20px 0;background:#fff;position:sticky;top:0;z-index:20">
+        <h1 style="font-size:22px;font-weight:800;color:#1D1F20;letter-spacing:-0.44px;line-height:1.3">영농일지</h1>
+      </div>
+
+      <!-- 캘린더 영역 -->
+      <div id="calWrap" style="position:sticky;top:62px;z-index:19;background:#fff;border-bottom:1px solid #E3E5E8">
+        <div id="calHeader" style="position:relative;display:flex;align-items:center;justify-content:center;padding:14px 16px 10px;min-height:44px">
+          <button id="calTodayBtn" onclick="goToday()" style="position:absolute;left:16px;background:#F1F2F4;border:none;border-radius:6px;padding:5px 10px 6px;font-family:'Pretendard',sans-serif;font-size:13px;font-weight:600;color:#464A4E;cursor:pointer;letter-spacing:-0.26px">오늘</button>
+          <div style="display:flex;align-items:center;justify-content:center;gap:4px">
+            <button onclick="moveCalMonth(-1)" id="calPrevBtn" style="width:32px;height:32px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 13L7 9L11 5" stroke="#464A4E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button id="calMonthTitle" onclick="openMonthPicker()" style="font-size:20px;font-weight:700;color:#1D1F20;letter-spacing:-0.4px;text-align:center;background:none;border:none;cursor:pointer;font-family:'Pretendard',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap"></button>
+            <button id="calNextBtn" onclick="moveCalMonth(1)" style="width:32px;height:32px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M7 13L11 9L7 5" stroke="#464A4E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+        <div id="calDowRow" style="display:grid;grid-template-columns:repeat(7,1fr);padding:0 20px">
+          <div style="height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#F00000">일</div>
+          <div style="height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#888F95">월</div>
+          <div style="height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#888F95">화</div>
+          <div style="height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#888F95">수</div>
+          <div style="height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#888F95">목</div>
+          <div style="height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#888F95">금</div>
+          <div style="height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#888F95">토</div>
+        </div>
+        <div id="calGridWrap" style="overflow:hidden;transition:height .28s cubic-bezier(.4,0,.2,1)">
+          <div id="calGridMonth" style="display:grid;grid-template-columns:repeat(7,1fr);padding:4px 20px 8px;gap:4px 0"></div>
+          <div id="calGridWeek" style="display:none;grid-template-columns:repeat(7,1fr);padding:4px 20px 8px;gap:4px 0"></div>
+        </div>
+        <div onclick="toggleCalCollapse()" style="display:flex;justify-content:center;align-items:center;padding:10px 0 14px;cursor:pointer;user-select:none">
+          <div id="calHandle" style="width:32px;height:3px;background:#A0A6AC;border-radius:10px;transition:transform .28s"></div>
+        </div>
+      </div>
+
+      <div id="logList" style="padding-top:24px;padding-bottom:100px"></div>
+
+      <button class="fab" onclick="goScreen('form')">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+
+    <!-- ═══ DETAIL ═══ -->
+    <div class="screen hidden" id="screen-detail">
+      <div class="appbar" style="border-bottom:none;justify-content:space-between">
+        <button class="appbar-back" onclick="goScreen('list')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <div style="display:flex;align-items:center;gap:6px;margin-left:auto">
+          <button style="width:40px;height:40px;border-radius:50%;background:#F9FAFB;border:none;cursor:default;display:flex;align-items:center;justify-content:center;opacity:0.5">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#464A4E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button onclick="if(confirm('이 영농일지를 삭제하시겠습니까?')){goScreen('list');setTimeout(()=>showToast('영농일지를 삭제했어요.','del'),100)}" style="width:40px;height:40px;border-radius:50%;background:#F9FAFB;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#464A4E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="det-body">
+        <!-- 날짜 헤더 -->
+        <div class="det-head">
+          <div class="det-date-row" style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap">
+            <span class="det-date-big" id="det-date-big">2026.03.04</span>
+            <span class="det-day" id="det-day">(월)</span>
+            <span style="color:#D0D4D7;font-size:14px;font-weight:400">|</span>
+            <span id="det-lunar" style="font-size:14px;font-weight:500;color:#A0A6AC;letter-spacing:-0.28px"></span>
+          </div>
+        </div>
+
+        <div class="det-sections">
+          <!-- 필지 -->
+          <div class="det-sec">
+            <div class="det-plot-addr" id="det-plot-main">충청북도 영동군 영동읍 계산리 201</div>
+            <div class="det-plot-meta">
+              <span class="det-plot-area">999,999.99㎡ (999,999.99평)</span>
+              <button class="det-plot-more" onclick="openDetPlotMore()">
+                <svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="6"/><line x1="7" y1="4.5" x2="7" y2="9.5"/><line x1="4.5" y1="7" x2="9.5" y2="7"/></svg>
+                외 4개 필지 더보기
+              </button>
+            </div>
+          </div>
+
+          <!-- 작물 -->
+          <div class="det-sec">
+            <div class="det-sec-lbl">작물</div>
+            <div class="det-crop-box">
+              <span class="det-crop-val" id="det-crop">브로콜리, 고추</span>
+            </div>
+          </div>
+
+          <!-- 작업 유형 -->
+          <div class="det-sec">
+            <div class="det-sec-lbl">작업 유형</div>
+            <div class="det-type-list">
+              <div class="det-type-row">
+                <span class="det-type-badge" style="background:#E4EDFF;color:#1F69FF">농약</span>
+                <span class="det-type-txt">에이팜 유제</span>
+                <span class="det-type-sep">|</span>
+                <span class="det-type-txt">100.2kg</span>
+              </div>
+              <div class="det-type-row">
+                <span class="det-type-badge" style="background:#FFEBD5;color:#FF6200">비료</span>
+                <span class="det-type-txt">혼합퇴비</span>
+                <span class="det-type-sep">|</span>
+                <span class="det-type-txt">100.0kg</span>
+              </div>
+              <div class="det-type-row">
+                <span class="det-type-badge" style="background:#CCF5E2;color:#008949">생산량</span>
+                <span class="det-type-txt">320kg</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 작업 내용 + 사진 -->
+          <div class="det-sec" style="gap:32px">
+            <div class="det-sec" style="gap:12px">
+              <div class="det-sec-lbl">작업 내용</div>
+              <p class="det-content-txt" id="det-content">새벽 5시부터 나와서 고추밭 진딧물 및 탄저병 예방 방제 작업 실시함. 어제 비가 와서 땅이 질어 트랙터 진입이 좀 어려웠으나 무사히 마무리. 내일은 A동 하우스 환풍기 점검해야 함.</p>
+            </div>
+            <div class="det-photo-grid" id="det-photos"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ FORM (Figma 디자인 반영) ═══ -->
+    <div class="screen hidden" id="screen-form">
+
+      <!-- 앱바: 뒤로가기만 -->
+      <div class="appbar" style="border-bottom:none">
+        <button class="appbar-back" onclick="goScreen('list')">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+      </div>
+
+      <div class="form-scroll">
+
+        <!-- 페이지 헤딩 -->
+        <div class="form-heading-wrap">
+          <h1 class="form-heading">영농일지를 등록해주세요.</h1>
+        </div>
+        <div class="form-heading-divider"></div>
+
+        <!-- 작업일 -->
+        <div class="form-sec-new">
+          <div class="form-lbl-new">작업일</div>
+          <div style="position:relative">
+            <div class="date-row-new">
+              <div class="date-box-new" id="fdbS" onclick="toggleCal('S')">
+                <span id="fds">2026.03.04. (수)</span>
+              </div>
+              <span class="date-sep-new">~</span>
+              <div class="date-box-new" id="fdbE" onclick="toggleCal('E')">
+                <span id="fde">2026.03.06. (금)</span>
+              </div>
+            </div>
+            <div class="cal-popup" id="fcalS" onclick="event.stopPropagation()"></div>
+            <div class="cal-popup" id="fcalE" onclick="event.stopPropagation()"></div>
+          </div>
+        </div>
+
+        <!-- 필지 -->
+        <div class="form-sec-new" style="padding-top:32px">
+          <div class="form-lbl-new">필지</div>
+          <div class="addr-wrap">
+            <input class="inp-new" id="plotIn" type="text" placeholder="필지주소를 입력 후 엔터를 눌러 추가해주세요."
+              oninput="searchAddr(this.value)"
+              onkeydown="if(event.key==='Enter'){addPlotManual();closeAddrDrop()}"
+              autocomplete="off"/>
+            <div class="addr-dropdown" id="addrDropdown"></div>
+          </div>
+          <button class="btn-plot-load" onclick="openPlotGroups()">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            내 필지 불러오기
+          </button>
+
+          <!-- 선택된 필지 -->
+          <div class="plot-selected-area" id="plotSelectedArea" style="display:none">
+            <div class="plot-selected-header">
+              <div class="plot-selected-title">
+                선택된 필지 <span class="plot-selected-count" id="plotCnt">0</span>
+              </div>
+              <button class="plot-clear-all" onclick="clearAllPlots()">전체 해제</button>
+            </div>
+            <div class="plot-chips-row" id="plotChipsRow"></div>
+          </div>
+
+          <!-- 최근 작성 필지 -->
+          <div class="recent-plots-area">
+            <div class="recent-plots-lbl">최근 작성 필지</div>
+            <div class="recent-chips-row" id="recentChipsRow">
+              <button class="recent-chip" onclick="addRecentPlot('계산리 201 외 5곳')">계산리 201 외 5곳</button>
+              <button class="recent-chip" onclick="addRecentPlot('금곡리 142')">금곡리 142</button>
+              <button class="recent-chip" onclick="addRecentPlot('용리 33-8')">용리 33-8</button>
+            </div>
+            <button class="btn-more-recent" onclick="openRecentPlots()">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#1F69FF" stroke-width="1.5"/><line x1="7" y1="4" x2="7" y2="10" stroke="#1F69FF" stroke-width="1.5" stroke-linecap="round"/><line x1="4" y1="7" x2="10" y2="7" stroke="#1F69FF" stroke-width="1.5" stroke-linecap="round"/></svg>
+              최근 작성 필지 더보기
+            </button>
+          </div>
+        </div>
+
+        <!-- 작물 -->
+        <div class="form-sec-new" style="padding-top:32px">
+          <div class="form-lbl-new">작물</div>
+          <div style="position:relative">
+            <input class="inp-new" id="cropIn" type="text" placeholder="작물명을 입력해주세요." oninput="chkForm()"/>
+          </div>
+          <!-- 최근 등록 작물 -->
+          <div style="margin-top:10px;position:relative">
+            <div style="overflow:hidden">
+              <div id="cropSuggRow" style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px"></div>
+            </div>
+            <div style="position:absolute;right:0;top:0;bottom:2px;width:24px;background:linear-gradient(to right,transparent,#fff);pointer-events:none"></div>
+          </div>
+          <p style="font-size:11px;color:var(--hint);margin-top:6px;letter-spacing:-0.22px">* 최근 등록한 영농일지 기준으로 최대 5개까지 노출됩니다.</p>
+        </div>
+
+        <!-- 작업 내용 -->
+        <div class="form-sec-new" style="padding-top:32px">
+          <div class="form-lbl-new">작업 내용</div>
+          <textarea class="textarea-new" id="memoIn" placeholder="작업 내용이나 특이사항을 입력해주세요." maxlength="1000" oninput="updateChar(this);chkForm()"></textarea>
+          <div class="char-cnt-new"><span id="charCnt">0</span>/1,000자</div>
+        </div>
+
+        <!-- 작업 유형 -->
+        <div class="form-sec-new" style="padding-top:32px">
+          <div class="form-lbl-new">작업 유형 <span class="form-lbl-opt">(선택)</span></div>
+
+          <!-- 추가된 카드 영역 -->
+          <div class="type-cards-area" id="typeResult" style="display:none"></div>
+
+          <!-- 유형 선택 칩 -->
+          <div class="type-chips-scroll" id="typeChips">
+            <button class="chip-type-pill" onclick="openTypeSheet('yield')">
+              <svg viewBox="0 0 14 14"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>
+              생산량
+            </button>
+            <button class="chip-type-pill" onclick="openTypeSheet('pesticide')">
+              <svg viewBox="0 0 14 14"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>
+              농약
+            </button>
+            <button class="chip-type-pill" onclick="openTypeSheet('fertilizer')">
+              <svg viewBox="0 0 14 14"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>
+              비료
+            </button>
+            <button class="chip-type-pill" onclick="openTypeSheet('seed')">
+              <svg viewBox="0 0 14 14"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>
+              종자
+            </button>
+            <button class="chip-type-pill" onclick="openTypeSheet('etc')">
+              <svg viewBox="0 0 14 14"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>
+              기타
+            </button>
+          </div>
+          <p class="type-note-new" id="typeNote">* 필요한 작업 유형을 누르면 위에 입력창이 생깁니다. (같은 유형 포함 최대 5개)</p>
+        </div>
+
+        <!-- 사진 -->
+        <div class="form-sec-new" style="padding-top:32px;padding-bottom:8px">
+          <div class="form-lbl-new">사진 <span class="form-lbl-opt">(선택)</span></div>
+          <!-- 사진 추가 버튼 -->
+          <button class="btn-photo-add" id="photoAddBtn" onclick="addPhoto()">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="12" r="5" stroke-width="1.5"/><rect x="3" y="5" width="18" height="14" rx="2" stroke-width="1.5"/><path d="M3 10h18" stroke-width="1.5"/><line x1="8" y1="5" x2="8" y2="2" stroke-width="1.5"/><line x1="16" y1="5" x2="16" y2="2" stroke-width="1.5"/></svg>
+            사진을 추가해주세요.
+          </button>
+          <!-- 추가된 사진 그리드 -->
+          <div class="photo-grid" id="photoRow" style="margin-top:8px;display:none"></div>
+          <p class="photo-max-msg" id="photoMaxMsg" style="display:none">* 사진은 최대 5개까지 등록 가능합니다.</p>
+        </div>
+
+      </div><!-- /form-scroll -->
+
+      <!-- 하단 버튼 -->
+      <div class="form-footer" id="formFooter">
+        <button class="btn-cancel" onclick="goScreen('list')">취소</button>
+        <button class="btn-submit-new" id="submitBtn" onclick="submitForm()">등록하기</button>
+      </div>
+    </div>
+
+
+
+
+    <!-- ═══ 필지 그룹 선택 ═══ -->
+    <div class="screen hidden" id="screen-plot-groups">
+      <div class="rp-appbar">
+        <button class="rp-close" onclick="goScreen('form')">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="rp-heading" style="padding-bottom:12px">등록 필지 선택</div>
+      <div class="pg-total">
+        <span class="pg-total-lbl">전체</span>
+        <span class="pg-total-cnt" id="pgTotalCnt">4</span>
+      </div>
+      <div class="pg-list" id="pgList"></div>
+      <div class="rp-footer">
+        <button class="rp-btn" id="pgConfirmBtn" onclick="confirmGroupSelect()" disabled>선택하기</button>
+      </div>
+    </div>
+
+    <!-- ═══ 개별 필지 선택 ═══ -->
+    <div class="screen hidden" id="screen-plot-items">
+      <div class="pi-appbar">
+        <button class="pi-back" onclick="goScreen('plot-groups')">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+      </div>
+      <div class="pi-heading">등록 필지 선택</div>
+      <div class="pi-select-bar">
+        <div class="rp-select-all" onclick="toggleAllPiItems()">
+          <div class="rp-cb" id="piAllCb">
+            <svg viewBox="0 0 14 14"><polyline points="2,7 5.5,10.5 12,3"/></svg>
+          </div>
+          <span class="rp-select-all-lbl">전체선택</span>
+        </div>
+        <div class="rp-total">
+          <span class="rp-total-lbl">전체</span>
+          <span class="rp-total-cnt" id="piTotalCnt">0</span>
+        </div>
+      </div>
+      <div class="pi-list" id="piList"></div>
+      <div class="rp-footer">
+        <button class="rp-btn" id="piConfirmBtn" onclick="confirmPlotItemSelect()" disabled>선택하기</button>
+      </div>
+    </div>
+
+
+    <!-- ═══ 상세 필지 더보기 (읽기전용) ═══ -->
+    <div class="screen hidden" id="screen-det-plots">
+      <div class="sp-appbar">
+        <button class="sp-close" onclick="goScreen('detail')">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="sp-heading">
+        <span class="sp-heading-lbl">선택된 필지</span>
+        <span class="sp-heading-cnt" id="detPlotCnt">0</span>
+      </div>
+      <div id="detPlotList" style="padding:0 20px;padding-bottom:40px"></div>
+    </div>
+
+    <!-- ═══ 선택된 필지 전체보기 ═══ -->
+    <div class="screen hidden" id="screen-selected-plots">
+      <div class="sp-appbar">
+        <button class="sp-close" onclick="goScreen('form')">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="sp-heading">
+        <span class="sp-heading-lbl">선택된 필지</span>
+        <span class="sp-heading-cnt" id="spHeadCnt">0</span>
+      </div>
+      <div class="sp-list" id="spList"></div>
+      <div class="rp-footer">
+        <button class="rp-btn" onclick="goScreen('form')">확인</button>
+      </div>
+    </div>
+
+    <!-- ═══ 최근 작성 필지 전체보기 ═══ -->
+    <div class="screen hidden" id="screen-recent-plots">
+      <div class="rp-appbar">
+        <button class="rp-close" onclick="closeRecentPlots()">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="rp-heading">최근 작성 필지</div>
+      <div class="rp-select-bar">
+        <div class="rp-select-all" onclick="toggleAllRecentPlots()">
+          <div class="rp-cb" id="rpAllCb">
+            <svg viewBox="0 0 14 14"><polyline points="2,7 5.5,10.5 12,3"/></svg>
+          </div>
+          <span class="rp-select-all-lbl">전체선택</span>
+        </div>
+        <div class="rp-total">
+          <span class="rp-total-lbl">전체</span>
+          <span class="rp-total-cnt" id="rpTotalCnt">0</span>
+        </div>
+      </div>
+      <div class="rp-list" id="rpList"></div>
+      <div class="rp-footer">
+        <button class="rp-btn" id="rpConfirmBtn" onclick="confirmRecentPlots()">선택하기</button>
+      </div>
+    </div>
+
+  </div><!-- /screens -->
+
+  <!-- 탭바 -->
+  <div class="tabbar" id="tabbar">
+    <button class="tab" onclick="">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12.8136 3.87419L3.8136 10.5058C3.302 10.8827 3 11.4804 3 12.1159V23C3 24.1046 3.89543 25 5 25H11C12.1046 25 13 24.1046 13 23V17C13 16.4477 13.4477 16 14 16C14.5523 16 15 16.4477 15 17V23C15 24.1046 15.8954 25 17 25H23C24.1046 25 25 24.1046 25 23V12.1159C25 11.4804 24.698 10.8827 24.1864 10.5058L15.1864 3.87419C14.4809 3.35434 13.5191 3.35434 12.8136 3.87419Z" fill="#A0A6AC"/>
+      </svg>
+      <span class="tab-lb">홈</span>
+    </button>
+    <button class="tab" onclick="">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 3H19.1351H22C23.1046 3 24 3.89543 24 5V23C24 24.1046 23.1046 25 22 25H6C4.89543 25 4 24.1046 4 23V5C4 3.89543 4.89543 3 6 3Z" fill="#A0A6AC"/>
+        <path d="M8.5 10.5L19.5 10.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        <path d="M8.5 15.333H15.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span class="tab-lb">작업 관리</span>
+    </button>
+    <button class="tab on" onclick="goScreen('list')">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M21.9701 13.6816C22.3216 13.3307 22.8922 13.3304 23.2435 13.6816L25.5658 16.0039C25.9171 16.3552 25.9167 16.9258 25.5658 17.2773L17.5189 25.3232C17.3578 25.4843 17.1411 25.579 16.9135 25.5869L14.5082 25.6689C14.2591 25.6774 14.0175 25.5824 13.8412 25.4062C13.6651 25.23 13.57 24.9882 13.5785 24.7393L13.6605 22.334C13.6685 22.1064 13.7632 21.8896 13.9242 21.7285L21.9701 13.6816ZM15.4486 22.75L15.4095 23.8369L16.4984 23.7998L21.3441 18.9531L20.2943 17.9043L15.4486 22.75ZM12.8334 16.2998C13.496 16.3 14.0336 16.8374 14.0336 17.5C14.0336 18.1626 13.496 18.7 12.8334 18.7002H3.50037C2.83762 18.7002 2.30017 18.1627 2.30017 17.5C2.30017 16.8373 2.83762 16.2998 3.50037 16.2998H12.8334ZM21.5677 16.6309L22.6176 17.6797L23.6556 16.6416L22.6068 15.5918L21.5677 16.6309ZM17.5004 9.88281C18.1628 9.88299 18.7004 10.4205 18.7006 11.083C18.7006 11.7456 18.163 12.283 17.5004 12.2832H3.50037C2.83762 12.2832 2.30017 11.7457 2.30017 11.083C2.30035 10.4204 2.83773 9.88281 3.50037 9.88281H17.5004ZM21.1302 3.4668C21.7928 3.46704 22.3304 4.0044 22.3304 4.66699C22.3303 5.32943 21.7927 5.86694 21.1302 5.86719H3.50037C2.83773 5.86719 2.30035 5.32958 2.30017 4.66699C2.30017 4.00425 2.83762 3.4668 3.50037 3.4668H21.1302Z" fill="#1D1F20"/>
+      </svg>
+      <span class="tab-lb" style="color:#1D1F20;font-weight:600">영농일지</span>
+    </button>
+    <button class="tab" onclick="">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="14.0001" cy="8.4" r="5.4" fill="#A0A6AC"/>
+        <path d="M3.5 20.5C3.5 17.7386 5.73858 15.5 8.5 15.5H19.5C22.2614 15.5 24.5 17.7386 24.5 20.5V23.6C24.5 24.3732 23.8732 25 23.1 25H4.9C4.1268 25 3.5 24.3732 3.5 23.6V20.5Z" fill="#A0A6AC"/>
+      </svg>
+      <span class="tab-lb">마이페이지</span>
+    </button>
+  </div>
+
+
+
+
+  <!-- ── 월 선택 바텀시트 ── -->
+  <div class="ov" id="monthPickerOv">
+    <div class="sheet" style="max-height:70vh">
+      <div class="sheet-handle"></div>
+      <div style="padding:16px 20px 12px;text-align:center">
+        <span id="monthPickerTitle" style="font-size:20px;font-weight:700;color:#1D1F20;letter-spacing:-0.4px;font-family:'Pretendard',sans-serif"></span>
+      </div>
+      <div style="height:1px;background:#EBEDEF;margin:0 20px"></div>
+      <!-- 드럼롤 스타일 월 선택 -->
+      <div id="monthPickerList" style="overflow-y:auto;max-height:280px;padding:8px 0"></div>
+      <div class="sheet-foot">
+        <button class="btn-sheet-apply" onclick="confirmMonthPicker()">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 토스트 ── -->
+  <div class="toast" id="toastMsg">
+    <div class="toast-icon">
+      <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3"/></svg>
+    </div>
+    <span id="toastTxt">영농일지를 등록했어요.</span>
+  </div>
+
+  <!-- ── 갤러리 오버레이 ── -->
+  <div class="gallery-ov" id="galleryOv">
+    <button class="gallery-close" onclick="closeGallery()">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <img class="gallery-main" id="galleryMain" src="" alt=""/>
+    <div class="gallery-thumbs" id="galleryThumbs"></div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- 필지 바텀시트 모달 -->
+<div class="ov" id="plotModal">
+  <div class="sheet" style="max-height:80vh">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hd">
+      <span class="sheet-title">내 필지 불러오기</span>
+      <button class="sheet-close" onclick="closeModal('plotModal')">✕</button>
+    </div>
+    <div style="padding:0 16px 10px">
+      <input class="pm-search" type="text" placeholder="주소를 검색하세요"/>
+    </div>
+    <div class="sheet-body" style="padding:0 16px">
+      <div class="pm-item sel">
+        <input type="checkbox" checked/>
+        <div class="pm-addr">
+          <div class="main">충청북도 영동군 영동읍 계산리 201</div>
+          <div class="sub1">2,400㎡ (726평)</div>
+        </div>
+      </div>
+      <div class="pm-item">
+        <input type="checkbox"/>
+        <div class="pm-addr">
+          <div class="main">충청북도 영동군 영동읍 계산리 202</div>
+          <div class="sub1">1,800㎡ (544평)</div>
+        </div>
+      </div>
+      <div class="pm-item">
+        <input type="checkbox"/>
+        <div class="pm-addr">
+          <div class="main">충청북도 영동군 영동읍 계산리 203</div>
+          <div class="sub1">3,200㎡ (968평)</div>
+        </div>
+      </div>
+      <div class="pm-item">
+        <input type="checkbox"/>
+        <div class="pm-addr">
+          <div class="main">충청북도 영동군 영동읍 계산리 204-8</div>
+          <div class="sub1">1,800㎡ (544평)</div>
+        </div>
+      </div>
+      <div class="pm-item">
+        <input type="checkbox"/>
+        <div class="pm-addr">
+          <div class="main">충청북도 영동군 영동읍 계산리 205-7</div>
+          <div class="sub1">2,400㎡ (726평)</div>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-foot">
+      <button class="btn-sheet-apply" onclick="closeModal('plotModal')">선택 완료</button>
+    </div>
+  </div>
+</div>
+
+<!-- 작업 유형 바텀시트 -->
+<div class="ov" id="typeModal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hd">
+      <div id="typeModalBadge"></div>
+      <button class="sheet-close" onclick="closeTypeSheet()">✕</button>
+    </div>
+    <div class="sheet-body" style="padding:0 20px 8px">
+      <input class="ci" id="tsf1" placeholder="" oninput="chkTypeForm()"/>
+      <input class="ci" id="tsf2" placeholder="" oninput="chkTypeForm()" style="display:none"/>
+    </div>
+    <div class="sheet-foot">
+      <div class="btn-sheet-foot-row">
+        <button id="typeDeleteWrap" onclick="deleteTypeItem()" class="btn-type-del" style="display:none">삭제</button>
+        <button class="btn-type-apply" id="typeApplyBtn" onclick="confirmTypeSheet()">추가하기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── 데이터 ── */
+const DAYS=['일','월','화','수','목','금','토'];
+const IMGS=[
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuBeL1AIezGYeO_V1O4kQwEK_iaaYiT273athOqdmjo1EYnGfO9Hs_SgOGQ8VSgPb9b7ted27MkXmlDbL-yTPDohEN4C4UxdXB56iseQ9EpsvGslUBkn3nOiOqDrGKRw-7u0O1J2e7LoR43ENh2-M57BBmRrV9FZf-wL_mMuLuSIfgOWaJZWcOlBMOsdtw9eK-m9XsZ8rSA5aTPGylJRrnaJ2x2vpuYCV-NCTVZWgiBLyf-64ZGrql9dzBLRyc7w_E2PMQRO10_kmQc',
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuDkqcwuZokBLloB_1MHXGjl1v-zYDBPNRd64ZGBkr3XE3D_Sxfp6eI5Oecw4RnInqHDm2F24g0pqEkiiMbgYTCzSBS5PbzbJ_frZRdWoMSIfg0OIfdLbKd-h9YkrZT377N2jfUSrNi21MRQ1LWqNfoUlQ98d0HTGNV6_dvQDz6RE-RhRDGvDKAOtA16NAxSN2hpEa0n5tmtnjYDSNfYZAgF9zU6u8tbqjikpMilGqf1g29art6OFt2n0LsQgfYyzxNH_x0qsu82BUw',
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuAWyrYe4cf2gfROU6jlRhxD4YtU4-fQhV1i_1TXF0LCRFKqu-hUtOZF7-tWQes2lDCv2cEWk3t9OCm7orCayGWWgj0Md4GFujMEx2JVpdp945FpBFVGIwnErP5b-SdcBr3IMukTfcDahUBqfwa-RlUJpVKd_52y9ox-Dow8LT96NEhgRl49kCa6MRrxlGtPMrKWCnktB5qvd8PuaC3W0_GiPlO5MT0cxZqNxATZhPd-1ZeARJz_K9ICqYmNu62O8UQT4OGuWZ-uWxc',
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuDmMaQ-c2Q45_uaZPh0wdZwracO9rL-yN2E82hgZW4DKFPpmzYiFI0__RwBIQXmGZyK--rWK03X30t_ANU0ph0fI-3i4ABy4HeUCQOiM95WMaFMc4-xZlrHhI_Fw4tUd3aLCuwQlq7HVPXJNI4avz334jjRKlEXgWLF8OGsPjh3RbE2sQxR-7OfKmH7QwYKkKVOZpb5xIFvPReJWIYFGERIs6z8ZgR504aeBxAA7FSCerzuJfb829yq8MEhd6IsGRv37yX7YWzIUgg',
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuDp0rh7FrTyXydyeM8ZIjLsYjcWWrpOS7Dan4_dZuSsKBe60NWav5028bQfo1A6njJ22XzGtClQFqzjkA0ILrQrBJ_Asns0qQjHF8WpQ2nRj5BK5CHZ0PPZ4f6GQ1dnNx5W2_Y91XE3dQn2-E68Od14Sd03lP__dnLIsbsuEmsokRL83dkNAHSRyzM3UQvnEDaVSKFKq_yA7lHC6bxfKgo992jCJVl8l8Bro80KMAiuGeOpZZSP703kCSYivmdM6QHIBHv_MsbmVhg',
+];
+const LOGS=[
+  {id:1,date:'2026.05.25 (일)',addr:'전북특별자치도 정읍시 정우면 초강리 1117-8 외 3곳',crop:'토종벼',types:['생산량','농약','비료','종자','기타'],content:'스프링쿨러로 60분 점도 물주기, 농약 5리터에 물 100리터를 타서 드론으로 살포하고 이후 비료는 우분 150kg을 전체 필지에 고르게 살포하였음.',photos:999,img:0},
+  {id:2,date:'2026.05.25 (일)',addr:'전북특별자치도 정읍시 정우면 초강리 1117-8 외 3곳',crop:'벼 (신동진)',types:['농약','비료','기타'],content:'농약 살포 작업 중 3-1 필지 복단 배수로 막힘 현상 발견.',photos:3,img:1},
+  {id:3,date:'2026.05.23 (금)',addr:'전북특별자치도 정읍시 정우면 초강리 1117-8 필지주소 최대 글자수...',crop:'벼 (신동진)',types:[],content:'농약 살포 작업 중 3-1 필지 복단 배수로 막힘 현상 발견.',photos:3,img:2},
+  {id:4,date:'2026.05.21 (수)',addr:'전북특별자치도 정읍시 정우면 초강리 1117-8 필지주소 최대 글자수...',crop:'벼 (신동진)',types:[],content:'농약 살포 작업 중 3-1 필지 복단 배수로 막힘 현상 발견.',photos:3,img:3},
+  {id:5,date:'2026.05.20 (화)',addr:'전북특별자치도 정읍시 정우면 초강리 1117-8 외 N곳',crop:'벼 (신동진)',types:['농약','비료','기타'],content:'스프링쿨러로 60분 점도 물주기, 농약 5리터에 물 100리터를 타서 드론으로 살포.',photos:3,img:4},
+  {id:6,date:'2026.05.18 (일)',addr:'전북특별자치도 정읍시 정우면 초강리 1117-8 외 N곳',crop:'벼 (신동진)',types:['농약','비료','기타'],content:'스프링쿨러로 60분 점도 물주기. 비료는 우분 150kg 살포.',photos:null,img:0},
+  {id:7,date:'2026.05.14 (목)',addr:'전북특별자치도 정읍시 정우면 초강리 1117-8 필지주소 최대 글자수...',crop:'벼 (신동진)',types:['생산량','농약','비료','종자','기타'],content:'농약 살포 작업 중 3-1 필지 복단 배수로 막힘 현상 발견.',photos:null,img:1},
+];
+const TC={'생산량':'tt-green','농약':'tt-blue','비료':'tt-orange','종자':'tt-purple','기타':'tt-gray'};
+const CROPS=['벼','고추','옥수수','고구마','브로콜리'];
+const TYPE_META={
+  pesticide:{label:'농약',cls:'tt-blue',fields:['농약명 (예: 에이팜 유제)','살포량 (예: 1250ml)']},
+  fertilizer:{label:'비료',cls:'tt-orange',fields:['비료명 (예: 혼합퇴비)','사용량 (예: 5포대)']},
+  yield:{label:'생산량',cls:'tt-green',fields:['생산량 (예: 999.9kg)']},
+  seed:{label:'종자',cls:'tt-purple',fields:['종자명 (예: 신동진)','파종량 (예: 100kg)']},
+  etc:{label:'기타',cls:'tt-gray',fields:['항목명 직접 입력','투입량 입력']}
+};
+
+/* ── 화면 전환 ── */
+function goScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+  document.getElementById('screen-'+name).classList.remove('hidden');
+  document.getElementById('screen-'+name).scrollTop=0;
+  const footer=document.getElementById('formFooter');
+  const tabbar=document.getElementById('tabbar');
+  const screensWrap=document.getElementById('screensWrap');
+  if(name==='form'){
+    footer.style.display='flex';
+    tabbar.style.display='none';
+    screensWrap.style.paddingBottom='0';
+  } else if(name==='detail'||name==='recent-plots'||name==='selected-plots'||name==='plot-groups'||name==='plot-items'||name==='det-plots'){
+    footer.style.display='none';
+    tabbar.style.display='none';
+    screensWrap.style.paddingBottom='0';
+  } else {
+    footer.style.display='none';
+    tabbar.style.display='flex';
+    screensWrap.style.paddingBottom='var(--tab-h)';
+  }
+}
+
+/* ── 캘린더 ── */
+const TODAY = new Date();
+let calYear = TODAY.getFullYear();
+let calMonth = TODAY.getMonth();
+let calSelected = {y:TODAY.getFullYear(), m:TODAY.getMonth(), d:TODAY.getDate()};
+let calCollapsed = false;
+
+function getLogDates(y, m) {
+  const days = new Set();
+  LOGS.forEach(l => {
+    const dp = l.date.replace(/\./g,'-').split(' ')[0];
+    const d = new Date(dp);
+    if(d.getFullYear()===y && d.getMonth()===m) days.add(d.getDate());
+  });
+  return days;
+}
+
+function buildDateCell(d, y, m, logDays) {
+  const dt = new Date(y, m, d);
+  const todayMid = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
+  const isToday    = dt.getTime() === todayMid.getTime();
+  const isPast     = dt < todayMid;
+  const isSun      = dt.getDay() === 0;
+  const isSelected = calSelected && calSelected.y===y && calSelected.m===m && calSelected.d===d;
+  const hasLog     = logDays ? logDays.has(d) : false;
+
+  // ── 상태 판별 ──
+  // selected-with-log / selected / today / default-with-log / default / past
+  let bg = '', numColor, numWeight, lunarColor, showDot = false, dotColor = '#1F69FF', showLunar = true, cellOpacity = '';
+
+  if(isSelected && hasLog){
+    // selected-with-log
+    bg = 'background:#1F69FF;border-radius:100px;';
+    numColor = '#fff'; numWeight = '700';
+    lunarColor = '#AFCAFF'; showDot = true; dotColor = 'rgba(255,255,255,0.8)';
+  } else if(isSelected){
+    // selected (음력 없음 → 피그마 기준 selected는 음력 표시)
+    bg = 'background:#1F69FF;border-radius:100px;';
+    numColor = '#fff'; numWeight = '700';
+    lunarColor = '#AFCAFF'; showDot = false;
+  } else if(isToday){
+    // today
+    bg = 'background:#E4EDFF;border-radius:100px;';
+    numColor = '#292B2D'; numWeight = '600';
+    lunarColor = '#BABFC4'; showDot = false;
+  } else if(hasLog){
+    // default-with-log
+    bg = '';
+    numColor = isSun ? '#F00000' : '#292B2D'; numWeight = '700';
+    lunarColor = '#BABFC4'; showDot = true; dotColor = '#1F69FF';
+  } else {
+    // default
+    bg = '';
+    numColor = isSun ? '#F00000' : '#888F95'; numWeight = '600';
+    lunarColor = '#BABFC4'; showDot = false;
+  }
+
+  // past opacity는 지난달/다음달 오버플로 날짜에만 적용 (buildEmptyCell)
+  // 현재 달 지난 날짜는 default 타입 정상 노출
+
+  const lunar = getLunarDate(new Date(y,m,d));
+  const lunarTxt = lunar ? lunar.m+'/'+lunar.d : '';
+
+  return '<div style="width:42px;height:42px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;position:relative;cursor:pointer;'+bg+cellOpacity+'" onclick="selectCalDate('+y+','+m+','+d+')">'
+    + (showDot ? '<div style="position:absolute;top:2px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:'+dotColor+'"></div>' : '')
+    + '<span style="font-size:16px;font-weight:'+numWeight+';color:'+numColor+';letter-spacing:-0.32px;line-height:1.3;font-family:Pretendard,sans-serif">'+d+'</span>'
+    + '<span style="font-size:10px;font-weight:400;color:'+lunarColor+';letter-spacing:-0.2px;line-height:1.3;font-family:Pretendard,sans-serif">'+lunarTxt+'</span>'
+    + '</div>';
+}
+
+function buildEmptyCell(d){ return '<div style="width:42px;height:42px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;opacity:0.35"><span style="font-size:16px;font-weight:600;color:#888F95;line-height:1.3">'+d+'</span><span style="font-size:10px;color:transparent;line-height:1.3">0/0</span></div>'; }
+
+function renderCal() {
+  const y=calYear, m=calMonth;
+  const titleBtn = document.getElementById('calMonthTitle');
+  if(titleBtn){
+    if(calCollapsed){
+      titleBtn.innerHTML = y+'년 '+(m+1)+'월 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0"><path d="M4 6L8 10L12 6" stroke="#464A4E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    } else {
+      titleBtn.textContent = y+'년 '+(m+1)+'월';
+    }
+  }
+  // 미래 날짜 허용 - 이전달 이동만 제한
+  const logDays=getLogDates(y,m);
+  const firstDay=new Date(y,m,1).getDay();
+  const lastDate=new Date(y,m+1,0).getDate();
+  const prevLastDate=new Date(y,m,0).getDate();
+  let html='';
+  for(let i=0;i<firstDay;i++) html+=buildEmptyCell(prevLastDate-firstDay+i+1);
+  for(let d=1;d<=lastDate;d++) html+=buildDateCell(d,y,m,logDays);
+  const total=firstDay+lastDate;
+  for(let i=1;i<=42-total;i++) html+=buildEmptyCell(i);
+  document.getElementById('calGridMonth').innerHTML=html;
+  renderCalWeek();
+  setCalHeight();
+}
+
+function renderCalWeek() {
+  const y=calYear, m=calMonth;
+  const logDays=getLogDates(y,m);
+  let refDay = calSelected ? calSelected.d : (calYear===TODAY.getFullYear()&&calMonth===TODAY.getMonth()?TODAY.getDate():1);
+  const refDt = new Date(y,m,refDay);
+  const refDow = refDt.getDay();
+  const weekStart = new Date(refDt); weekStart.setDate(refDay - refDow);
+  let html='';
+  for(let i=0;i<7;i++){
+    const d=new Date(weekStart); d.setDate(weekStart.getDate()+i);
+    if(d.getMonth()===m) html+=buildDateCell(d.getDate(),y,m,logDays);
+    else html+=buildEmptyCell(d.getDate());
+  }
+  document.getElementById('calGridWeek').innerHTML=html;
+}
+
+function setCalHeight(){
+  const wrap=document.getElementById('calGridWrap');
+  const ROW_H=48;
+  if(calCollapsed){
+    document.getElementById('calGridMonth').style.display='none';
+    document.getElementById('calGridWeek').style.display='grid';
+    wrap.style.height=(ROW_H+12)+'px';
+  } else {
+    document.getElementById('calGridWeek').style.display='none';
+    document.getElementById('calGridMonth').style.display='grid';
+    const firstDay=new Date(calYear,calMonth,1).getDay();
+    const lastDate=new Date(calYear,calMonth+1,0).getDate();
+    const rows=Math.ceil((firstDay+lastDate)/7);
+    wrap.style.height=(rows*ROW_H+12)+'px';
+  }
+}
+
+function toggleCalCollapse(){
+  calCollapsed=!calCollapsed;
+  setCalHeight();
+  const prevBtn=document.getElementById('calPrevBtn');
+  const nextBtn=document.getElementById('calNextBtn');
+  const todayBtn=document.getElementById('calTodayBtn');
+  const dowRow=document.getElementById('calDowRow');
+  const appbar=document.querySelector('#screen-list .appbar');
+  if(prevBtn) prevBtn.style.display=calCollapsed?'none':'flex';
+  if(nextBtn) nextBtn.style.display=calCollapsed?'none':'flex';
+  if(todayBtn) todayBtn.style.display=calCollapsed?'none':'flex';
+  const titleBtn2=document.getElementById('calMonthTitle');
+  if(titleBtn2){
+    const y2=calYear,m2=calMonth;
+    if(calCollapsed){
+      titleBtn2.innerHTML=y2+'년 '+(m2+1)+'월 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0"><path d="M4 6L8 10L12 6" stroke="#464A4E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    } else {
+      titleBtn2.textContent=y2+'년 '+(m2+1)+'월';
+    }
+  }
+  if(dowRow) dowRow.style.display=calCollapsed?'none':'grid';
+  if(appbar) appbar.style.display=calCollapsed?'none':'flex';
+  const calWrap=document.getElementById('calWrap');
+  if(calWrap) calWrap.style.top=calCollapsed?'0':'62px';
+}
+
+function moveCalMonth(dir) {
+  calMonth += dir;
+  if(calMonth < 0) { calMonth = 11; calYear--; }
+  if(calMonth > 11) { calMonth = 0; calYear++; }
+  calSelected = null;
+  renderCal();
+  renderList();
+}
+
+function goToday() {
+  calYear = TODAY.getFullYear();
+  calMonth = TODAY.getMonth();
+  calSelected = {y:TODAY.getFullYear(), m:TODAY.getMonth(), d:TODAY.getDate()};
+  renderCal();
+  renderList();
+  document.getElementById('screen-list').scrollTop = 0;
+}
+
+function selectCalDate(y, m, d) {
+  if(calSelected && calSelected.y===y && calSelected.m===m && calSelected.d===d) {
+    calSelected = null;
+  } else {
+    calSelected = {y, m, d};
+  }
+  renderCal();
+  renderList();
+}
+
+/* ── 리스트 렌더 ── */
+function renderList() {
+  const wrap = document.getElementById('logList');
+  if(!wrap) return;
+  let filtered = LOGS;
+  if(calSelected) {
+    filtered = LOGS.filter(l => {
+      const dp = l.date.replace(/\./g,'-').split(' ')[0];
+      const ld = new Date(dp);
+      return ld.getFullYear()===calSelected.y && ld.getMonth()===calSelected.m && ld.getDate()===calSelected.d;
+    });
+  } else {
+    filtered = LOGS.filter(l => {
+      const dp = l.date.replace(/\./g,'-').split(' ')[0];
+      const ld = new Date(dp);
+      return ld.getFullYear()===calYear && ld.getMonth()===calMonth;
+    });
+  }
+  if(!filtered.length) {
+    wrap.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 20px;gap:12px">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M37.6934 23.4854C38.2791 22.9003 39.2288 22.9 39.8145 23.4854L43.7959 27.4678C44.3814 28.0535 44.3813 29.0031 43.7959 29.5889L30.0039 43.3818C29.7355 43.6503 29.3735 43.807 28.9941 43.8203L24.8711 43.9619C24.4556 43.9762 24.0518 43.8174 23.7578 43.5234C23.4641 43.2295 23.305 42.8265 23.3193 42.4111L23.4619 38.2871C23.4753 37.9078 23.632 37.5467 23.9004 37.2783L37.6934 23.4854ZM26.4404 38.9814L26.374 40.9082L28.3008 40.8418L36.6514 32.4912L34.791 30.6309L26.4404 38.9814ZM22 28.5C22.8284 28.5 23.5 29.1716 23.5 30C23.5 30.8284 22.8284 31.5 22 31.5H6C5.17157 31.5 4.5 30.8284 4.5 30C4.5 29.1716 5.17157 28.5 6 28.5H22ZM36.9121 28.5098L38.7725 30.3701L40.6143 28.5283L38.7539 26.668L36.9121 28.5098ZM30 17.5C30.8284 17.5 31.5 18.1716 31.5 19C31.5 19.8284 30.8284 20.5 30 20.5H6C5.17157 20.5 4.5 19.8284 4.5 19C4.5 18.1716 5.17157 17.5 6 17.5H30ZM36.2227 6.5C37.0509 6.50024 37.7227 7.17172 37.7227 8C37.7227 8.82828 37.0509 9.49977 36.2227 9.5H6C5.17167 9.49988 4.5 8.82835 4.5 8C4.5 7.17165 5.17167 6.50012 6 6.5H36.2227Z" fill="#D0D4D7"/></svg>
+      <p style="font-size:16px;font-weight:600;color:#A0A6AC;letter-spacing:-0.32px;text-align:center">등록된 영농일지가 없어요.</p>
+    </div>`;
+    return;
+  }
+  wrap.innerHTML = filtered.map(l => {
+    const tags = l.types.slice(0,4).map(t => {
+      const mc = TC[t];
+      const bg = mc==='tt-blue'?'#E4EDFF':mc==='tt-orange'?'#FFEBD5':mc==='tt-green'?'#CCF5E2':mc==='tt-purple'?'#EBE7FF':'#F1F2F4';
+      const fc = mc==='tt-blue'?'#1F69FF':mc==='tt-orange'?'#FF6200':mc==='tt-green'?'#008949':mc==='tt-purple'?'#851FF9':'#6D7379';
+      return `<span style="display:inline-flex;align-items:center;height:24px;padding:0 8px;background:${bg};border-radius:6px;font-size:13px;font-weight:700;color:${fc};letter-spacing:-0.26px">${t}</span>`;
+    }).join('');
+    const imgSrc = IMGS[l.img % IMGS.length];
+    const photoCnt = Math.min(l.photos, 5);
+    const extraPhotos = photoCnt > 1 ? photoCnt - 1 : 0;
+    const badgeHtml = extraPhotos > 0
+      ? `<div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,0.55);border-radius:4px;padding:2px 5px;font-size:11px;font-weight:700;color:#fff;letter-spacing:-0.22px">+${extraPhotos}</div>`
+      : '';
+    const thumbHtml = l.photos ? `<div style="flex-shrink:0;width:72px;height:72px;border-radius:8px;overflow:hidden;background:#F1F2F4;position:relative"><img src="${imgSrc}" style="width:100%;height:100%;object-fit:cover"/>${badgeHtml}</div>` : '';
+    // 날짜 파싱
+    const dateParts = l.date.replace(/\./g,'-').split(' ');
+    const lDate = new Date(dateParts[0]);
+    const lunarInfo = getLunarDate(lDate);
+    const lunarStr = lunarInfo ? ` 음력 ${lunarInfo.m}.${lunarInfo.d}` : '';
+    const dateStr = `${l.date.split(' ')[0].replace(/-/g,'.')} ${l.date.split(' ')[1]}${lunarStr}`;
+
+    return `<div onclick="showDetail(${l.id})" style="display:flex;flex-direction:column;padding:20px 20px;border-bottom:1px solid #EBEDEF;cursor:pointer;gap:10px">
+      <div style="font-size:13px;font-weight:500;color:#888F95;letter-spacing:-0.26px">${dateStr}</div>
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+          <div style="font-size:16px;font-weight:700;color:#383B3E;letter-spacing:-0.32px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.addr}</div>
+          <div style="font-size:14px;font-weight:600;color:#464A4E;letter-spacing:-0.28px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.crop}</div>
+          <div style="font-size:14px;font-weight:400;color:#6D7379;letter-spacing:-0.28px;line-height:1.5;max-height:42px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${l.content}</div>
+          ${tags ? `<div style="display:flex;flex-wrap:wrap;gap:4px">${tags}</div>` : ''}
+        </div>
+        ${thumbHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── 상세 ── */
+function showDetail(id){
+  const l=LOGS.find(x=>x.id===id);
+  if(!l)return;
+  document.getElementById('det-date-big').textContent=l.date.split(' ')[0];
+  document.getElementById('det-day').textContent=' '+l.date.split(' ')[1];
+  const detDp = l.date.replace(/\./g,'-').split(' ')[0];
+  const detLunar = getLunarDate(new Date(detDp));
+  const detLunarEl = document.getElementById('det-lunar');
+  if(detLunarEl) detLunarEl.textContent = detLunar ? '음력 '+detLunar.m+'.'+detLunar.d : '';
+  document.getElementById('det-plot-main').textContent=l.addr;
+  document.getElementById('det-crop').textContent=l.crop;
+  document.getElementById('det-content').textContent=l.content;
+  const pg=document.getElementById('det-photos');
+  if(l.photos&&l.photos>0){
+    const cnt=Math.min(l.photos,5);
+    pg.innerHTML=Array.from({length:cnt},(_,i)=>`<img class="det-photo-item" src="${IMGS[i%IMGS.length]}" onclick="openGallery(${i},${cnt})"/>`).join('');
+  } else {
+    pg.innerHTML='<p style="font-size:13px;color:var(--hint)">등록된 사진이 없습니다.</p>';
+  }
+  goScreen('detail');
+}
+
+function togglePlotMore(){
+  const el=document.getElementById('det-plot-more');
+  const btn=document.getElementById('det-more-btn');
+  const show=el.style.display==='none';
+  el.style.display=show?'block':'none';
+  btn.textContent=show?'▲ 접기':'+ 외 4개 필지 더보기';
+}
+
+/* ── 폼: 날짜 캘린더 ── */
+let fcs={S:null,E:null};
+const FDOW=['일','월','화','수','목','금','토'];
+
+function fmtDWithDay(y,m,d){
+  const dt=new Date(y,m,d);
+  const dow=FDOW[dt.getDay()];
+  const mm=String(m+1).padStart(2,'0');
+  const dd=String(d).padStart(2,'0');
+  return `${y}.${mm}.${dd}. (${dow})`;
+}
+
+function toggleCal(which){
+  const idS='fcalS',idE='fcalE';
+  const otherCal=which==='S'?document.getElementById(idE):document.getElementById(idS);
+  otherCal.classList.remove('open');
+  document.getElementById(which==='S'?idS:idE).classList.toggle('open');
+  if(document.getElementById(which==='S'?idS:idE).classList.contains('open')){
+    renderFormCal(which);
+  }
+  document.getElementById('fdb'+which).classList.toggle('active');
+}
+
+let formCalState={S:{y:TODAY.getFullYear(),m:TODAY.getMonth()},E:{y:TODAY.getFullYear(),m:TODAY.getMonth()}};
+
+function renderFormCal(which){
+  const {y,m}=formCalState[which];
+  const el=document.getElementById('fcal'+which);
+  const firstDay=new Date(y,m,1).getDay();
+  const lastDate=new Date(y,m+1,0).getDate();
+  const prevLast=new Date(y,m,0).getDate();
+
+  const sDate=fcs.S?new Date(fcs.S.y,fcs.S.m,fcs.S.d):null;
+  const eDate=fcs.E?new Date(fcs.E.y,fcs.E.m,fcs.E.d):null;
+  const hasRange=sDate&&eDate&&sDate<eDate;
+
+  let cells='';
+  for(let i=0;i<firstDay;i++){
+    cells+=`<div class="cc empty" style="opacity:.3"><span style="font-size:12px;color:#ccc">${prevLast-firstDay+i+1}</span></div>`;
+  }
+  for(let d=1;d<=lastDate;d++){
+    const dt=new Date(y,m,d);
+    const isSun=dt.getDay()===0;
+    const isSat=dt.getDay()===6;
+    const isSelS=fcs.S&&fcs.S.y===y&&fcs.S.m===m&&fcs.S.d===d;
+    const isSelE=fcs.E&&fcs.E.y===y&&fcs.E.m===m&&fcs.E.d===d;
+    const isSel=(which==='S'&&isSelS)||(which==='E'&&isSelE);
+    const inRange=hasRange&&dt>sDate&&dt<eDate;
+
+    let cls='cc';
+    if(which==='E'&&hasRange&&isSelS) cls+=' rng-s';
+    else if(which==='E'&&hasRange&&isSelE) cls+=' rng-e';
+    else if(which==='E'&&inRange) cls+=' rng';
+    else if(isSel) cls+=' sel';
+    if(!isSel&&!inRange){
+      if(isSun&&!cls.includes('rng')) cls+=' sun';
+      if(isSat&&!cls.includes('rng')) cls+=' sat';
+    }
+    cells+=`<div class="${cls}" onclick="selectFormDate('${which}',${y},${m},${d})">${d}</div>`;
+  }
+  el.innerHTML=`
+    <div class="cal-head">
+      <button class="cal-nav" onclick="moveFormCalMonth('${which}',-1)">◀</button>
+      <span class="cal-ym">${y}년 ${m+1}월</span>
+      <button class="cal-nav" onclick="moveFormCalMonth('${which}',1)">▶</button>
+    </div>
+    <div class="cal-dow"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+    <div class="cal-grid">${cells}</div>`;
+}
+
+function moveFormCalMonth(which,dir){
+  formCalState[which].m+=dir;
+  if(formCalState[which].m<0){formCalState[which].m=11;formCalState[which].y--;}
+  if(formCalState[which].m>11){formCalState[which].m=0;formCalState[which].y++;}
+  renderFormCal(which);
+}
+
+function selectFormDate(which,y,m,d){
+  fcs[which]={y,m,d};
+  document.getElementById('fd'+(which==='S'?'s':'e')).textContent=fmtDWithDay(y,m,d);
+  document.getElementById('fcal'+which).classList.remove('open');
+  document.getElementById('fdb'+which).classList.remove('active');
+  chkForm();
+}
+
+/* ── 폼: 필지 ── */
+let selectedPlots=[];
+
+function addPlotManual(){
+  const val=document.getElementById('plotIn').value.trim();
+  if(!val)return;
+  selectedPlots.push({id:'p'+Date.now(),label:val});
+  document.getElementById('plotIn').value='';
+  renderPlotChips();
+  chkForm();
+}
+
+function addRecentPlot(label){
+  if(selectedPlots.find(p=>p.label===label))return;
+  selectedPlots.push({id:'p'+Date.now(),label});
+  renderPlotChips();
+  chkForm();
+}
+
+function removePlot(id){
+  selectedPlots=selectedPlots.filter(p=>p.id!==id);
+  renderPlotChips();
+  chkForm();
+}
+
+function clearAllPlots(){
+  selectedPlots=[];
+  renderPlotChips();
+  chkForm();
+}
+
+function renderPlotChips(){
+  const area=document.getElementById('plotSelectedArea');
+  const row=document.getElementById('plotChipsRow');
+  const cnt=selectedPlots.length;
+  document.getElementById('plotCnt').textContent=cnt;
+
+  if(cnt===0){area.style.display='none';return;}
+  area.style.display='block';
+
+  const MAX_SHOW=3;
+  const visible=selectedPlots.slice(0,MAX_SHOW);
+  const extra=cnt-MAX_SHOW;
+
+  // 칩: 콘텐츠 너비 기준 auto, 말줄임 처리
+  const chipsHtml=visible.map(p=>`
+    <div class="plot-chip">
+      <span class="plot-chip-label">${p.label}</span>
+      <button class="plot-chip-x" onclick="removePlot('${p.id}')">
+        <svg viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9"/><line x1="9" y1="1" x2="1" y2="9"/></svg>
+      </button>
+    </div>`).join('');
+
+  // +N 칩은 줄바꿈 후 별도 행
+  const moreHtml=extra>0
+    ?`<div class="plot-chips-more-row"><button class="plot-chip-more" onclick="openSelectedPlots()">+${extra}</button></div>`
+    :'';
+
+  row.innerHTML=chipsHtml+moreHtml;
+}
+
+/* ── 폼: 작물 추천 칩 ── */
+function renderCropSugg(){
+  const row=document.getElementById('cropSuggRow');
+  if(!row)return;
+  row.innerHTML=CROPS.map(c=>`<button onmousedown="addCropChip('${c}')" style="height:28px;padding:0 12px;background:#fff;border:1px solid #E3E5E8;border-radius:14px;font-family:'Pretendard',sans-serif;font-size:12px;font-weight:600;color:var(--sub);cursor:pointer;flex-shrink:0;letter-spacing:-0.24px">${c}</button>`).join('');
+}
+
+function addCropChip(val){
+  const inp=document.getElementById('cropIn');
+  const cur=inp.value.trim();
+  const parts=cur?cur.split(',').map(s=>s.trim()).filter(Boolean):[];
+  if(!parts.includes(val)){
+    parts.push(val);
+    inp.value=parts.join(', ');
+    chkForm();
+  }
+}
+
+/* ── 폼: 작업 유형 ── */
+let typeCards=[];
+let typeSheetTarget={type:null,editId:null};
+
+function openTypeSheet(type,editId=null){
+  const meta=TYPE_META[type];
+  typeSheetTarget={type,editId};
+  // 배지
+  const badge=document.getElementById('typeModalBadge');
+  const colorMap={pesticide:'#E4EDFF',fertilizer:'#FFEBD5',yield:'#CCF5E2',seed:'#EBE7FF',etc:'#F1F2F4'};
+  const textMap={pesticide:'#1F69FF',fertilizer:'#FF6200',yield:'#008949',seed:'#851FF9',etc:'#6D7379'};
+  badge.innerHTML=`<span style="display:inline-flex;align-items:center;height:28px;padding:0 10px;background:${colorMap[type]};border-radius:6px;font-size:13px;font-weight:700;color:${textMap[type]};letter-spacing:-0.26px">${meta.label}</span>`;
+  // 인풋
+  const f1=document.getElementById('tsf1');
+  const f2=document.getElementById('tsf2');
+  f1.placeholder=meta.fields[0]||'';
+  f1.value='';
+  if(meta.fields[1]){
+    f2.style.display='block';
+    f2.placeholder=meta.fields[1];
+    f2.value='';
+  } else {
+    f2.style.display='none';
+    f2.value='';
+  }
+  // 수정 모드
+  const delWrap=document.getElementById('typeDeleteWrap');
+  const applyBtn=document.getElementById('typeApplyBtn');
+  if(editId){
+    const card=typeCards.find(c=>c.id===editId);
+    if(card){f1.value=card.val1||'';f2.value=card.val2||'';}
+    delWrap.style.display='flex';
+    applyBtn.textContent='수정하기';
+  } else {
+    delWrap.style.display='none';
+    applyBtn.textContent='추가하기';
+  }
+  openModal('typeModal');
+}
+
+function chkTypeForm(){
+  const ok=document.getElementById('tsf1').value.trim().length>0;
+  document.getElementById('typeApplyBtn').disabled=!ok;
+}
+
+function confirmTypeSheet(){
+  const val1=document.getElementById('tsf1').value.trim()||'';
+  const val2=document.getElementById('tsf2').value.trim()||'';
+  if(!val1){document.getElementById('tsf1').focus();return;}
+  const {type,editId}=typeSheetTarget;
+  if(editId){
+    const idx=typeCards.findIndex(c=>c.id===editId);
+    if(idx>-1) typeCards[idx]={...typeCards[idx],val1,val2};
+  } else {
+    typeCards.push({id:'tc'+Date.now(),type,val1,val2});
+  }
+  closeTypeSheet();
+  renderTypeResult();
+}
+
+function deleteTypeItem(){
+  const {editId}=typeSheetTarget;
+  if(editId) typeCards=typeCards.filter(c=>c.id!==editId);
+  closeTypeSheet();
+  renderTypeResult();
+}
+
+function closeTypeSheet(){
+  closeModal('typeModal');
+  typeSheetTarget={type:null,editId:null};
+}
+
+function renderTypeResult(){
+  const wrap=document.getElementById('typeResult');
+  const n=typeCards.length;
+  if(n===0){wrap.style.display='none';}
+  else{
+    wrap.style.display='flex';
+    wrap.innerHTML=typeCards.map(c=>{
+      const meta=TYPE_META[c.type];
+      const colorMap={pesticide:'#E4EDFF',fertilizer:'#FFEBD5',yield:'#CCF5E2',seed:'#EBE7FF',etc:'#F1F2F4'};
+      const textMap={pesticide:'#1F69FF',fertilizer:'#FF6200',yield:'#008949',seed:'#851FF9',etc:'#6D7379'};
+      const content=c.val2
+        ?`<span style="font-size:14px;font-weight:600;color:var(--text)">${c.val1}</span><span style="color:#D0D4D7;font-size:13px;margin:0 6px">|</span><span style="font-size:14px;font-weight:700;color:var(--text)">${c.val2}</span>`
+        :`<span style="font-size:14px;font-weight:700;color:var(--text)">${c.val1}</span>`;
+      const val1txt = c.val1 ? `<span style="font-size:15px;font-weight:600;color:#464A4E;letter-spacing:-0.3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.val1}</span>` : '';
+      const sepTxt = c.val2 ? `<span style="font-size:14px;color:#D0D4D7;margin:0 4px">|</span>` : '';
+      const val2txt = c.val2 ? `<span style="font-size:15px;font-weight:600;color:#464A4E;letter-spacing:-0.3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.val2}</span>` : '';
+      return `<div onclick="openTypeSheet('${c.type}','${c.id}')" class="type-card-item">
+        <span style="display:inline-flex;align-items:center;height:28px;padding:0 8px;background:${colorMap[c.type]};border-radius:6px;font-size:13px;font-weight:700;color:${textMap[c.type]};white-space:nowrap;flex-shrink:0">${meta.label}</span>
+        ${val1txt}${sepTxt}${val2txt}
+      </div>`;
+    }).join('');
+  }
+  // 칩 5개 제한
+  document.querySelectorAll('#typeChips .chip-type-pill').forEach(b=>b.disabled=n>=5);
+  const note=document.getElementById('typeNote');
+  if(note){note.textContent=n>=5?'* 최대 5개 추가되었습니다.':'* 필요한 작업 유형을 누르면 위에 입력창이 생깁니다. (같은 유형 포함 최대 5개)';}
+}
+
+/* ── 폼: 사진 ── */
+let photoCount=0;
+function addPhoto(){
+  if(photoCount>=5)return;
+  const row=document.getElementById('photoRow');
+  const pid='ph'+Date.now();
+  const th=document.createElement('div');
+  th.className='photo-thumb';th.id=pid;
+  const img=document.createElement('img');
+  img.src=IMGS[photoCount%IMGS.length];
+  img.style.cssText='width:100%;height:100%;object-fit:cover;display:block';
+  const del=document.createElement('button');
+  del.className='photo-del';
+  del.innerHTML='<svg viewBox="0 0 12 12"><line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/></svg>';
+  del.onclick=()=>removePhoto(pid);
+  th.appendChild(img);th.appendChild(del);
+  row.appendChild(th);
+  photoCount++;
+  updatePhotoUI();
+}
+function removePhoto(id){
+  const el=document.getElementById(id);
+  if(el){el.remove();photoCount--;updatePhotoUI();}
+}
+function updatePhotoUI(){
+  const row=document.getElementById('photoRow');
+  const addBtn=document.getElementById('photoAddBtn');
+  const maxMsg=document.getElementById('photoMaxMsg');
+  row.style.display=photoCount>0?'grid':'none';
+  if(photoCount>=5){
+    addBtn.classList.add('disabled');
+    addBtn.onclick=null;
+    addBtn.innerHTML='<svg viewBox="0 0 24 24" stroke="#BABFC4" stroke-width="1.5" fill="none"><circle cx="12" cy="12" r="5"/><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="8" y1="5" x2="8" y2="2"/><line x1="16" y1="5" x2="16" y2="2"/></svg> 사진을 추가해주세요.';
+    maxMsg.style.display='block';
+  } else {
+    addBtn.classList.remove('disabled');
+    addBtn.onclick=addPhoto;
+    addBtn.innerHTML='<svg viewBox="0 0 24 24" stroke="#1F69FF" stroke-width="1.5" fill="none"><circle cx="12" cy="12" r="5"/><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="8" y1="5" x2="8" y2="2"/><line x1="16" y1="5" x2="16" y2="2"/></svg> 사진을 추가해주세요.';
+    maxMsg.style.display='none';
+  }
+}
+
+/* ── 폼 검증 ── */
+function chkForm(){
+  const ok=selectedPlots.length>0&&document.getElementById('cropIn').value.trim()&&document.getElementById('memoIn').value.trim();
+  document.getElementById('submitBtn').classList.toggle('on',ok);
+}
+
+function updateChar(el){
+  document.getElementById('charCnt').textContent=el.value.length.toLocaleString();
+}
+
+function submitForm(){
+  if(!document.getElementById('submitBtn').classList.contains('on'))return;
+  goScreen('list');
+  setTimeout(()=>showToast('영농일지를 등록했어요.'), 100);
+}
+
+/* ── 모달 공통 ── */
+function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
+function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')['plotModal','typeModal'].forEach(id=>{const el=document.getElementById(id);if(el&&el.classList.contains('open'))closeModal(id);});});
+document.addEventListener('click',e=>{
+  ['fcalS','fcalE'].forEach(id=>{
+    const cal=document.getElementById(id);
+    const box=document.getElementById('fdb'+(id==='fcalS'?'S':'E'));
+    const dateWrap=box?box.closest('[style*="position:relative"]'):null;
+    if(cal&&dateWrap&&!dateWrap.contains(e.target)&&cal.classList.contains('open')){
+      cal.classList.remove('open');
+      box.classList.remove('active');
+    }
+  });
+});
+
+/* ── 탭바 스크롤 인터랙션 ── */
+(function(){
+  let lastY=0,ticking=false;
+  const THRESHOLD=6;
+  document.getElementById('screen-list').addEventListener('scroll',function(){
+    const curY=this.scrollTop;
+    if(!ticking){
+      requestAnimationFrame(()=>{
+        const tab=document.getElementById('tabbar');
+        const screens=document.querySelector('.screens');
+        const fab=document.querySelector('.fab');
+        if(curY>lastY&&curY>60){
+          tab.classList.add('hidden');
+          if(screens)screens.style.paddingBottom='0';
+          if(fab){fab.style.opacity='0';fab.style.pointerEvents='none';}
+        } else if(lastY-curY>THRESHOLD){
+          tab.classList.remove('hidden');
+          if(screens)screens.style.paddingBottom='var(--tab-h)';
+          if(fab){fab.style.opacity='1';fab.style.pointerEvents='all';}
+        }
+        lastY=curY;ticking=false;
+      });
+      ticking=true;
+    }
+  });
+})();
+
+/* ── 갤러리 (상세) ── */
+let galCurrent = 0;
+let galTotal = 0;
+
+function openGallery(idx, total){
+  galCurrent = idx;
+  galTotal = total || IMGS.length;
+  renderGallery();
+  document.getElementById('galleryOv').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeGallery(){
+  document.getElementById('galleryOv').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function renderGallery(){
+  const main = document.getElementById('galleryMain');
+  const thumbs = document.getElementById('galleryThumbs');
+  main.src = IMGS[galCurrent % IMGS.length];
+  const slots = Array.from({length:5}, (_,i) => {
+    if(i < galTotal){
+      return `<img class="gallery-thumb${i===galCurrent?' active':''}" src="${IMGS[i%IMGS.length]}" onclick="switchGallery(${i})"/>`;
+    } else {
+      return `<div style="aspect-ratio:1/1;border-radius:8px;background:rgba(255,255,255,0.08)"></div>`;
+    }
+  });
+  thumbs.innerHTML = slots.join('');
+}
+
+function switchGallery(idx){
+  galCurrent = idx;
+  renderGallery();
+}
+
+// 스와이프
+(function(){
+  let startX=0;
+  const ov = document.getElementById('galleryOv');
+  if(!ov) return;
+  ov.addEventListener('touchstart', e=>{ startX=e.touches[0].clientX; }, {passive:true});
+  ov.addEventListener('touchend', e=>{
+    const diff = startX - e.changedTouches[0].clientX;
+    if(Math.abs(diff)>50){
+      if(diff>0 && galCurrent<galTotal-1) switchGallery(galCurrent+1);
+      else if(diff<0 && galCurrent>0) switchGallery(galCurrent-1);
+    }
+  });
+})();
+
+const RECENT_PLOTS = [
+  {id:'rp1', addr:'충청북도 영동군 영동읍 계산리 201 외 5곳', date:'2026.03.02'},
+  {id:'rp2', addr:'충청북도 영동군 영동읍 계산리 202', date:'2026.03.02'},
+  {id:'rp3', addr:'충청북도 영동군 영동읍 계산리 203', date:'2026.03.01'},
+  {id:'rp4', addr:'충청북도 영동군 영동읍 계산리 204 외 5곳', date:'2026.02.28'},
+  {id:'rp5', addr:'충청북도 영동군 영동읍 계산리 205', date:'2026.02.25'},
+  {id:'rp6', addr:'전북특별자치도 정읍시 정우면 초강리 1117-8', date:'2026.02.20'},
+  {id:'rp7', addr:'전북특별자치도 정읍시 정우면 금곡리 142', date:'2026.02.18'},
+  {id:'rp8', addr:'전북특별자치도 정읍시 정우면 용리 33-8', date:'2026.02.15'},
+];
+let rpSelected = new Set(); // 이 페이지에서 선택 중인 id
+
+function openRecentPlots(){
+  // 현재 selectedPlots에서 이미 선택된 것 동기화
+  rpSelected = new Set(selectedPlots.map(p=>p.label));
+  renderRpList();
+  goScreen('recent-plots');
+}
+
+function closeRecentPlots(){
+  goScreen('form');
+}
+
+function renderRpList(){
+  const list = document.getElementById('rpList');
+  const totalEl = document.getElementById('rpTotalCnt');
+  if(totalEl) totalEl.textContent = RECENT_PLOTS.length;
+
+  list.innerHTML = RECENT_PLOTS.map(p => {
+    const isSel = rpSelected.has(p.addr);
+    return `<div class="rp-item${isSel?' sel':''}" onclick="toggleRpItem('${p.id}','${p.addr}')">
+      <div class="rp-cb">
+        <svg viewBox="0 0 14 14"><polyline points="2,7 5.5,10.5 12,3"/></svg>
+      </div>
+      <div class="rp-info">
+        <div class="rp-addr">${p.addr}</div>
+        <div class="rp-date">최근 사용 : ${p.date}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  updateRpAllCb();
+  updateRpBtn();
+}
+
+function toggleRpItem(id, addr){
+  if(rpSelected.has(addr)) rpSelected.delete(addr);
+  else rpSelected.add(addr);
+  renderRpList();
+}
+
+function toggleAllRecentPlots(){
+  const allAddrs = RECENT_PLOTS.map(p=>p.addr);
+  const allSel = allAddrs.every(a=>rpSelected.has(a));
+  if(allSel){
+    allAddrs.forEach(a=>rpSelected.delete(a));
+  } else {
+    allAddrs.forEach(a=>rpSelected.add(a));
+  }
+  renderRpList();
+}
+
+function updateRpAllCb(){
+  const allCb = document.getElementById('rpAllCb');
+  if(!allCb) return;
+  const allSel = RECENT_PLOTS.length > 0 && RECENT_PLOTS.every(p=>rpSelected.has(p.addr));
+  if(allSel){
+    allCb.style.background = 'var(--primary)';
+    allCb.style.borderColor = 'var(--primary)';
+    allCb.querySelector('svg').style.opacity = '1';
+  } else {
+    allCb.style.background = '#F9FAFB';
+    allCb.style.borderColor = '#D0D4D7';
+    allCb.querySelector('svg').style.opacity = '0';
+  }
+}
+
+function updateRpBtn(){
+  const btn = document.getElementById('rpConfirmBtn');
+  if(!btn) return;
+  const cnt = rpSelected.size;
+  btn.textContent = cnt > 0 ? cnt+'개 선택하기' : '선택하기';
+  btn.disabled = cnt === 0;
+}
+
+function confirmRecentPlots(){
+  // rpSelected의 주소들을 selectedPlots에 추가 (중복 제외)
+  rpSelected.forEach(addr => {
+    if(!selectedPlots.find(p=>p.label===addr)){
+      selectedPlots.push({id:'p'+Date.now()+Math.random(), label:addr});
+    }
+  });
+  renderPlotChips();
+  chkForm();
+  goScreen('form');
+}
+
+
+/* ── 선택된 필지 전체보기 ── */
+function openSelectedPlots(){
+  renderSpList();
+  goScreen('selected-plots');
+}
+
+function renderSpList(){
+  const list = document.getElementById('spList');
+  const cntEl = document.getElementById('spHeadCnt');
+  if(cntEl) cntEl.textContent = selectedPlots.length;
+
+  if(selectedPlots.length === 0){
+    list.innerHTML = '<div class="sp-empty">선택된 필지가 없습니다.</div>';
+    return;
+  }
+
+  list.innerHTML = selectedPlots.map(p => `
+    <div class="sp-row" id="sp-row-${p.id}">
+      <span class="sp-row-addr">${p.label}</span>
+      <button class="sp-row-del" onclick="removeSpPlot('${p.id}')">
+        <svg viewBox="0 0 16 16"><line x1="2" y1="2" x2="14" y2="14"/><line x1="14" y1="2" x2="2" y2="14"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+function removeSpPlot(id){
+  selectedPlots = selectedPlots.filter(p => p.id !== id);
+  renderPlotChips();
+  chkForm();
+  renderSpList();
+  // 모두 삭제되면 폼으로 자동 복귀
+  if(selectedPlots.length === 0) goScreen('form');
+}
+
+
+/* ── 필지 그룹 & 개별 필지 선택 ── */
+const PLOT_GROUPS = [
+  {id:'g1', name:'필지 그룹 A', addr:'경기도 용인시 수지구 신수로 767 외', count:14, plots:[
+    {id:'g1p1',addr:'충청북도 영동군 영동읍 계산리 201',area:'2,400㎡ (726평)'},
+    {id:'g1p2',addr:'충청북도 영동군 영동읍 계산리 202',area:'1,800㎡ (544평)'},
+    {id:'g1p3',addr:'충청북도 영동군 영동읍 계산리 203',area:'3,200㎡ (968평)'},
+    {id:'g1p4',addr:'충청북도 영동군 영동읍 계산리 204-8',area:'1,800㎡ (544평)'},
+    {id:'g1p5',addr:'충청북도 영동군 영동읍 계산리 205-7',area:'2,400㎡ (726평)'},
+  ]},
+  {id:'g2', name:'필지 그룹 B', addr:'경기도 용인시 수지구 신수로 767 외', count:14, plots:[
+    {id:'g2p1',addr:'전북특별자치도 정읍시 정우면 초강리 1117-8',area:'5,200㎡ (1,573평)'},
+    {id:'g2p2',addr:'전북특별자치도 정읍시 정우면 금곡리 142',area:'3,400㎡ (1,029평)'},
+    {id:'g2p3',addr:'전북특별자치도 정읍시 정우면 용리 33-8',area:'2,800㎡ (847평)'},
+  ]},
+  {id:'g3', name:'필지 그룹 C', addr:'경기도 용인시 수지구 신수로 767 외', count:14, plots:[
+    {id:'g3p1',addr:'충남 서산시 해미면 대곡리 128',area:'4,100㎡ (1,240평)'},
+    {id:'g3p2',addr:'충남 서산시 해미면 대곡리 129',area:'3,800㎡ (1,150평)'},
+  ]},
+  {id:'g4', name:'필지 그룹 123', addr:'경기도 용인시 수지구 신수로 767 외', count:14, plots:[
+    {id:'g4p1',addr:'경기도 이천시 마장면 오천리 200',area:'6,000㎡ (1,815평)'},
+    {id:'g4p2',addr:'경기도 이천시 마장면 오천리 201',area:'4,500㎡ (1,361평)'},
+  ]},
+];
+
+let pgSelectedId = null; // 선택된 그룹 id
+let piSelectedIds = new Set(); // 선택된 개별 필지 id
+let piCurrentGroup = null; // 현재 보는 그룹
+
+function openPlotGroups(){
+  pgSelectedId = null;
+  renderPgList();
+  goScreen('plot-groups');
+}
+
+function renderPgList(){
+  const list = document.getElementById('pgList');
+  list.innerHTML = PLOT_GROUPS.map(g => {
+    const isSel = pgSelectedId === g.id;
+    return `<div class="pg-item${isSel?' sel':''}" onclick="openPlotItems('${g.id}')">
+      <div class="pg-radio" onclick="event.stopPropagation();selectGroup('${g.id}')"><div class="pg-radio-dot"></div></div>
+      <div class="pg-info">
+        <div class="pg-name">${g.name}</div>
+        <div class="pg-addr">${g.addr}</div>
+        <div class="pg-cnt">
+          <svg viewBox="0 0 16 16" fill="none" stroke="#888F95" stroke-width="1.5"><path d="M8 14s-5-4.5-5-8a5 5 0 0 1 10 0c0 3.5-5 8-5 8z"/><circle cx="8" cy="6" r="1.5" fill="#888F95" stroke="none"/></svg>
+          ${g.count}
+        </div>
+      </div>
+      <div class="pg-arrow">
+        <svg viewBox="0 0 16 16"><polyline points="6 4 10 8 6 12"/></svg>
+      </div>
+    </div>`;
+  }).join('');
+  const btn = document.getElementById('pgConfirmBtn');
+  if(btn){ btn.disabled = !pgSelectedId; btn.style.background = pgSelectedId ? 'var(--primary)' : '#E3E5E8'; }
+}
+
+function selectGroup(id){
+  pgSelectedId = pgSelectedId === id ? null : id;
+  renderPgList();
+}
+
+function confirmGroupSelect(){
+  if(!pgSelectedId) return;
+  const group = PLOT_GROUPS.find(g=>g.id===pgSelectedId);
+  if(!group) return;
+  // 그룹 내 전체 필지 일괄 추가 (중복 제외)
+  group.plots.forEach(p => {
+    if(!selectedPlots.find(x=>x.label===p.addr)){
+      selectedPlots.push({id:'p'+Date.now()+Math.random(), label:p.addr});
+    }
+  });
+  renderPlotChips();
+  chkForm();
+  goScreen('form');
+}
+
+function openPlotItems(groupId){
+  piCurrentGroup = PLOT_GROUPS.find(g=>g.id===groupId);
+  piSelectedIds = new Set();
+  renderPiList();
+  goScreen('plot-items');
+}
+
+function renderPiList(){
+  if(!piCurrentGroup) return;
+  const list = document.getElementById('piList');
+  const cntEl = document.getElementById('piTotalCnt');
+  if(cntEl) cntEl.textContent = piCurrentGroup.plots.length;
+
+  list.innerHTML = piCurrentGroup.plots.map(p => {
+    const isSel = piSelectedIds.has(p.id);
+    return `<div class="pi-item${isSel?' sel':''}" onclick="togglePiItem('${p.id}')">
+      <div class="pi-cb">
+        <svg viewBox="0 0 14 14"><polyline points="2,7 5.5,10.5 12,3"/></svg>
+      </div>
+      <div class="pi-info">
+        <div class="pi-addr">${p.addr}</div>
+        <div class="pi-area">${p.area}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  updatePiAllCb();
+  updatePiBtn();
+}
+
+function togglePiItem(id){
+  if(piSelectedIds.has(id)) piSelectedIds.delete(id);
+  else piSelectedIds.add(id);
+  renderPiList();
+}
+
+function toggleAllPiItems(){
+  const allIds = piCurrentGroup.plots.map(p=>p.id);
+  const allSel = allIds.every(id=>piSelectedIds.has(id));
+  if(allSel) allIds.forEach(id=>piSelectedIds.delete(id));
+  else allIds.forEach(id=>piSelectedIds.add(id));
+  renderPiList();
+}
+
+function updatePiAllCb(){
+  const cb = document.getElementById('piAllCb');
+  if(!cb||!piCurrentGroup) return;
+  const allSel = piCurrentGroup.plots.length>0 && piCurrentGroup.plots.every(p=>piSelectedIds.has(p.id));
+  cb.style.background = allSel ? 'var(--primary)' : '#F9FAFB';
+  cb.style.borderColor = allSel ? 'var(--primary)' : '#D0D4D7';
+  cb.querySelector('svg').style.opacity = allSel ? '1' : '0';
+}
+
+function updatePiBtn(){
+  const btn = document.getElementById('piConfirmBtn');
+  if(!btn) return;
+  const cnt = piSelectedIds.size;
+  btn.disabled = cnt === 0;
+  btn.style.background = cnt > 0 ? 'var(--primary)' : '#E3E5E8';
+  btn.textContent = cnt > 0 ? cnt+'개 선택하기' : '선택하기';
+}
+
+function confirmPlotItemSelect(){
+  if(!piCurrentGroup || piSelectedIds.size === 0) return;
+  piCurrentGroup.plots
+    .filter(p => piSelectedIds.has(p.id))
+    .forEach(p => {
+      if(!selectedPlots.find(x=>x.label===p.addr)){
+        selectedPlots.push({id:'p'+Date.now()+Math.random(), label:p.addr});
+      }
+    });
+  renderPlotChips();
+  chkForm();
+  goScreen('form');
+}
+
+
+/* ── 주소 자동완성 ── */
+const ADDR_SAMPLE = [
+  '경기도 용인시 수지구 신수로 767 001',
+  '경기도 용인시 수지구 신수로 767 002',
+  '경기도 용인시 수지구 신수로 767 003',
+  '경기도 용인시 수지구 신수로 767 004',
+  '경기도 용인시 수지구 신수로 767 005',
+  '충청북도 영동군 영동읍 계산리 201',
+  '충청북도 영동군 영동읍 계산리 202',
+  '충청북도 영동군 영동읍 계산리 203',
+  '전북특별자치도 정읍시 정우면 초강리 1117-8',
+  '전북특별자치도 정읍시 정우면 금곡리 142',
+];
+
+function searchAddr(val){
+  const drop = document.getElementById('addrDropdown');
+  const q = val.trim();
+  if(!q){ drop.classList.remove('open'); drop.innerHTML=''; return; }
+  const matches = ADDR_SAMPLE.filter(a => a.includes(q)).slice(0,6);
+  if(!matches.length){ drop.classList.remove('open'); return; }
+  drop.innerHTML = matches.map(a => {
+    const hi = a.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')', 'gi'), '<em>$1</em>');
+    return `<div class="addr-item" onmousedown="selectAddr('${a}')">${hi}</div>`;
+  }).join('');
+  drop.classList.add('open');
+}
+
+function selectAddr(addr){
+  document.getElementById('plotIn').value = addr;
+  closeAddrDrop();
+  addPlotManual();
+}
+
+function closeAddrDrop(){
+  const drop = document.getElementById('addrDropdown');
+  if(drop){ drop.classList.remove('open'); drop.innerHTML=''; }
+  const inp = document.getElementById('plotIn');
+  if(inp) inp.value='';
+}
+
+document.addEventListener('click', e=>{
+  const wrap = document.querySelector('.addr-wrap');
+  if(wrap && !wrap.contains(e.target)) closeAddrDrop();
+});
+
+
+/* ── 상세 필지 더보기 (읽기전용) ── */
+const DET_PLOTS = [
+  '충청북도 영동군 영동읍 계산리 201',
+  '충청북도 영동군 영동읍 계산리 202',
+  '충청북도 영동군 영동읍 계산리 203',
+  '충청북도 영동군 영동읍 계산리 204',
+  '충청북도 영동군 영동읍 계산리 205',
+];
+
+function openDetPlotMore(){
+  const cntEl = document.getElementById('detPlotCnt');
+  const list = document.getElementById('detPlotList');
+  if(cntEl) cntEl.textContent = DET_PLOTS.length;
+  list.innerHTML = DET_PLOTS.map(addr =>
+    `<div style="padding:14px 4px;border-bottom:1px solid #EBEDEF;font-size:16px;font-weight:600;color:#464A4E;letter-spacing:-0.32px">${addr}</div>`
+  ).join('');
+  goScreen('det-plots');
+}
+
+
+/* ── 토스트 ── */
+function showToast(msg, type){
+  const el=document.getElementById('toastMsg');
+  const txt=document.getElementById('toastTxt');
+  const icon=el.querySelector('.toast-icon');
+  if(!el)return;
+  txt.textContent=msg;
+  if(type==='del'){
+    icon.style.background='#6D7379';
+    icon.innerHTML='<svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="9" y2="6"/></svg>';
+  } else {
+    icon.style.background='#22C55E';
+    icon.innerHTML='<svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg>';
+  }
+  el.classList.add('show');
+  setTimeout(()=>{ el.classList.remove('show'); },2500);
+}
+
+
+/* ── 음력 변환 (간단 알고리즘) ── */
+const LUNAR_DATA = [
+  [2020,1,25],[2021,1,13],[2022,2,1],[2023,1,22],[2024,2,10],[2025,1,29],[2026,2,17],[2027,2,6]
+];
+
+function getLunarDate(solarDate) {
+  // 기준일로부터 일수 계산
+  let baseYear = 2026, baseSolar = new Date(2026, 0, 29); // 음력 2025.12.1 = 양력 2026.1.29
+  // 음력 월 길이 데이터 (2025.12 ~ 2027.6)
+  const monthLengths = [30,29,30,29,30,29,30,29,30,30,29,30, // 2025.12~2026.11
+                         29,30,29,30,29,30,29,30,29,30,29,30]; // 2026.12~2027.11
+  const monthNames = [];
+  let y=2025, m=12;
+  for(let i=0;i<monthLengths.length;i++){
+    monthNames.push({y,m});
+    m++; if(m>12){m=1;y++;}
+  }
+
+  const diffDays = Math.round((solarDate - baseSolar) / 86400000);
+  if(diffDays < 0 || diffDays > 720) return null;
+
+  let remain = diffDays;
+  let mi = 0;
+  while(mi < monthLengths.length && remain >= monthLengths[mi]){
+    remain -= monthLengths[mi];
+    mi++;
+  }
+  const lunarDay = remain + 1;
+  const lunarMonth = monthNames[mi] ? monthNames[mi].m : null;
+  if(!lunarMonth) return null;
+  return {m: lunarMonth, d: lunarDay};
+}
+
+
+/* ── 월 선택 바텀시트 ── */
+let mpSelectedY = null, mpSelectedM = null;
+
+function openMonthPicker(){
+  mpSelectedY = calYear;
+  mpSelectedM = calMonth;
+  renderMonthPicker();
+  openModal('monthPickerOv');
+}
+
+function renderMonthPicker(){
+  const titleEl = document.getElementById('monthPickerTitle');
+  if(titleEl) titleEl.textContent = mpSelectedY+'년 '+(mpSelectedM+1)+'월';
+
+  const list = document.getElementById('monthPickerList');
+  // 2020년 1월 ~ 2030년 12월
+  const items = [];
+  for(let y=2030;y>=2020;y--){
+    for(let m=11;m>=0;m--){
+      items.push({y, m});
+    }
+  }
+
+  list.innerHTML = items.map(({y,m}) => {
+    const isSel = y===mpSelectedY && m===mpSelectedM;
+    return `<div onclick="selectMonthItem(${y},${m})" style="display:flex;align-items:center;justify-content:center;gap:24px;height:52px;cursor:pointer;background:${isSel?'#F6F7F8':'transparent'};border-radius:8px;margin:0 16px">
+      <span style="font-size:${isSel?'18px':'16px'};font-weight:${isSel?'700':'400'};color:${isSel?'#1D1F20':'#A0A6AC'};letter-spacing:-0.32px;font-family:'Pretendard',sans-serif;min-width:60px;text-align:right">${y}년</span>
+      <span style="font-size:${isSel?'18px':'16px'};font-weight:${isSel?'700':'400'};color:${isSel?'#1D1F20':'#A0A6AC'};letter-spacing:-0.32px;font-family:'Pretendard',sans-serif;min-width:40px">${m+1}월</span>
+    </div>`;
+  }).join('');
+
+  // 선택된 항목으로 스크롤
+  setTimeout(()=>{
+    const selIdx = items.findIndex(({y,m})=>y===mpSelectedY&&m===mpSelectedM);
+    if(selIdx>-1) list.scrollTop = selIdx * 52 - 100;
+  }, 50);
+}
+
+function selectMonthItem(y, m){
+  mpSelectedY = y;
+  mpSelectedM = m;
+  renderMonthPicker();
+}
+
+function confirmMonthPicker(){
+  calYear = mpSelectedY;
+  calMonth = mpSelectedM;
+  calSelected = null;
+  closeModal('monthPickerOv');
+  renderCal();
+  renderList();
+}
+
+/* ── 초기화 ── */
+requestAnimationFrame(()=>{renderCal();renderList();});
+renderCropSugg();
+
+// 폼 초기 날짜 설정
+(function(){
+  const y=TODAY.getFullYear(),m=TODAY.getMonth(),d=TODAY.getDate();
+  fcs.S={y,m,d};fcs.E={y,m,d};
+  document.getElementById('fds').textContent=fmtDWithDay(y,m,d);
+  document.getElementById('fde').textContent=fmtDWithDay(y,m,d);
+})();
+</script>
+</body>
+</html>
