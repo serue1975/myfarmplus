@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GrayMagus Studio — UI Kit v2.0</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet"/>
+<style>
+/* ══════════════════════════════════════════
+   DESIGN TOKENS
+   ══════════════════════════════════════════ */
+:root {
+  /* Brand */
+  --primary:        #FF2E56;
+  --primary-hover:  #E6284D;
+  --primary-press:  #CC2344;
+
+  /* Gray Scale — Cool Gray (Blue base) */
+  --gray-01: #151B24;
+  --gray-02: #343941;
+  --gray-03: #4C5259;
+  --gray-04: #656B73;
+  --gray-05: #81878E;
+  --gray-06: #9EA3A9;
+  --gray-07: #BBBEC3;
+  --gray-08: #D8D9DC;
+  --gray-09: #EEEFF1;
+  --gray-10: #F6F6F7;
+
+  /* Accent */
+  --teal:   #10636D;
+  --orange: #FA4118;
+
+  /* Semantic */
+  --color-text:      #151B24;
+  --color-text-sub:  #656B73;
+  --color-text-hint: #9EA3A9;
+  --color-border:    #D8D9DC;
+  --color-bg:        #EEEFF1;
+  --color-error:     #E03E3E;
+  --color-success:   #00B26A;
+
+  /* UI Primary (Button) */
+  --btn-primary:       #4C5259;
+  --btn-primary-hover: #343941;
+  --btn-primary-press: #151B24;
+
+  /* Component Radius */
+  --radius-btn:   6px;
+  --radius-input: 6px;
+  --radius-card:  12px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Pretendard', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  display: flex;
+}
+
+/* ══════════════════════════════════════════
+   LAYOUT — SIDEBAR + CONTENT
+   ══════════════════════════════════════════ */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: #fff;
+  border-right: 1px solid var(--gray-08);
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+  padding: 32px 0 40px;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--gray-08); border-radius: 2px; }
+
+.sidebar-logo {
+  padding: 0 20px 28px;
+  border-bottom: 1px solid var(--gray-09);
+  margin-bottom: 16px;
+}
+.sidebar-logo-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.04em;
+}
+.sidebar-logo-sub {
+  font-size: 11px;
+  color: var(--color-text-hint);
+  margin-top: 2px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.nav-group { margin-bottom: 4px; }
+.nav-group-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-hint);
+  padding: 8px 20px 4px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-sub);
+  cursor: pointer;
+  transition: all 0.12s;
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  background: none;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  width: 100%;
+  text-align: left;
+  font-family: 'Pretendard', sans-serif;
+  letter-spacing: -0.02em;
+}
+.nav-item:hover { background: var(--gray-10); color: var(--color-text); }
+.nav-item.active {
+  background: rgba(76,82,89,0.06);
+  color: var(--btn-primary);
+  font-weight: 700;
+  border-left-color: var(--btn-primary);
+}
+.nav-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gray-08);
+  flex-shrink: 0;
+}
+.nav-item.active .nav-dot { background: var(--btn-primary); }
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+/* ══════════════════════════════════════════
+   SECTION PANELS
+   ══════════════════════════════════════════ */
+.panel {
+  display: none;
+  padding: 48px 56px 80px;
+  max-width: 1060px;
+}
+.panel.active { display: block; }
+
+.panel-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-hint);
+  margin-bottom: 4px;
+}
+.panel-headline {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--color-text);
+  margin-bottom: 40px;
+}
+
+.section { margin-bottom: 56px; }
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--btn-primary);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--gray-09);
+}
+
+.spec-card {
+  background: #fff;
+  border-radius: var(--radius-card);
+  padding: 28px;
+  margin-bottom: 12px;
+  border: 1px solid var(--gray-09);
+}
+.spec-card-desc {
+  font-size: 12px;
+  color: var(--color-text-hint);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.spec-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--gray-10);
+}
+.spec-row:last-child { border-bottom: none; padding-bottom: 0; }
+.spec-row:first-child { padding-top: 0; }
+
+.spec-meta { width: 130px; flex-shrink: 0; }
+.spec-name { font-size: 12px; font-weight: 700; color: var(--gray-03); }
+.spec-value { font-size: 11px; color: var(--color-text-hint); margin-top: 2px; }
+.spec-demo { flex: 1; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+.tag {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; border-radius: 4px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+.tag-dark { background: rgba(76,82,89,0.1); color: var(--btn-primary); }
+.tag-gray { background: var(--gray-10); color: var(--color-text-sub); }
+
+/* ══════════════════════════════════════════
+   BUTTONS
+   ══════════════════════════════════════════ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: 'Pretendard', sans-serif; font-weight: 700;
+  border-radius: var(--radius-btn); cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.08s;
+  white-space: nowrap; letter-spacing: -0.02em; user-select: none;
+}
+.btn:active { transform: scale(0.98); }
+
+.btn-xl { height: 56px; padding: 0 24px; font-size: 18px; }
+.btn-lg { height: 48px; padding: 0 24px; font-size: 16px; }
+.btn-md { height: 40px; padding: 0 16px; font-size: 15px; }
+.btn-sm { height: 32px; padding: 0 16px; font-size: 13px; font-weight: 600; }
+
+.btn-solid {
+  background: var(--btn-primary); color: #fff;
+}
+.btn-solid:hover  { background: var(--btn-primary-hover); }
+.btn-solid:active { background: var(--btn-primary-press); }
+.btn-solid:disabled {
+  background: var(--gray-08); color: var(--gray-06);
+  cursor: not-allowed; transform: none;
+}
+
+.btn-outline {
+  background: #fff; color: var(--btn-primary);
+  border-color: var(--gray-07);
+}
+.btn-outline:hover  { background: var(--gray-10); border-color: var(--gray-06); color: var(--btn-primary-hover); }
+.btn-outline:active { background: var(--gray-09); border-color: var(--gray-05); color: var(--btn-primary-press); }
+.btn-outline:disabled {
+  background: #fff; color: var(--gray-07);
+  border-color: var(--gray-08); cursor: not-allowed; transform: none;
+}
+
+/* State table */
+.state-table { width: 100%; border-collapse: collapse; min-width: 680px; }
+.state-table th {
+  font-size: 11px; font-weight: 600; color: var(--color-text-hint);
+  text-align: center; padding: 8px 6px 14px;
+  border-bottom: 2px solid var(--gray-08);
+}
+.state-table th:first-child { text-align: left; }
+.state-table td {
+  padding: 14px 6px; text-align: center;
+  border-bottom: 1px solid var(--gray-10); vertical-align: middle;
+}
+.state-table td:first-child { text-align: left; }
+.state-table tr:last-child td { border-bottom: none; }
+.state-table-wrap { overflow-x: auto; }
+
+/* Rationale note */
+.rationale-note {
+  background: var(--gray-10);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-top: 4px;
+  border-left: 3px solid var(--btn-primary);
+}
+.rationale-note-title {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--btn-primary); margin-bottom: 12px;
+}
+.rationale-swatches {
+  display: grid; grid-template-columns: repeat(6,1fr);
+  gap: 8px; margin-bottom: 14px;
+}
+.rationale-swatch { text-align: center; }
+.rationale-swatch-bar { height: 32px; margin-bottom: 6px; }
+.rationale-swatch-label { font-size: 11px; font-weight: 700; color: var(--gray-03); }
+.rationale-swatch-desc { font-size: 11px; color: var(--color-text-hint); margin-top: 2px; }
+.rationale-swatch.current .rationale-swatch-bar {
+  outline: 2px solid var(--btn-primary); outline-offset: 2px;
+}
+.rationale-swatch.current .rationale-swatch-label { color: var(--btn-primary); }
+.rationale-swatch.current .rationale-swatch-desc { color: var(--btn-primary); font-weight: 600; }
+.rationale-body { font-size: 12px; color: var(--color-text-sub); line-height: 1.7; }
+
+/* Full width demo */
+.fullwidth-demo {
+  background: #fff; border-radius: var(--radius-card);
+  padding: 28px; border: 1px solid var(--gray-09);
+  display: flex; flex-direction: column; gap: 12px;
+  max-width: 390px;
+}
+.fullwidth-demo .btn { width: 100%; }
+
+/* ══════════════════════════════════════════
+   INPUTS — BOX TYPE
+   ══════════════════════════════════════════ */
+.input-demo-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px;
+}
+.input-demo-item { display: flex; flex-direction: column; gap: 6px; }
+.input-state-tag {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--color-text-hint); margin-bottom: 2px;
+}
+
+.input-wrap { display: flex; flex-direction: column; gap: 6px; }
+.input-label-text {
+  font-size: 12px; font-weight: 600;
+  color: var(--color-text-sub); letter-spacing: -0.01em;
+}
+.input-label-text.focused { color: var(--primary); }
+.input-label-text.error   { color: var(--color-error); }
+
+.input-box-wrap { position: relative; }
+.input-box {
+  height: 48px; padding: 0 44px 0 16px;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 16px; font-weight: 400;
+  color: var(--color-text); background: var(--gray-10);
+  border: 1px solid transparent;
+  border-radius: var(--radius-input); outline: none;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  width: 100%; letter-spacing: -0.02em;
+}
+.input-box::placeholder { color: var(--gray-07); }
+.input-box:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(255,46,86,0.12); }
+.input-box.filled { background: #fff; border-color: var(--gray-07); }
+.input-box.error  { background: #fff; border-color: var(--color-error); box-shadow: 0 0 0 3px rgba(224,62,62,0.1); }
+.input-box:disabled { background: var(--gray-10); color: var(--gray-07); border-color: transparent; cursor: not-allowed; }
+
+.box-clear {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  width: 20px; height: 20px; border: none; background: none;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .15s; padding: 0;
+}
+.input-box-wrap.has-value .box-clear { opacity: 1; }
+.box-clear-icon {
+  width: 18px; height: 18px; background: var(--gray-06);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.box-clear:active .box-clear-icon { background: var(--gray-04); }
+.box-clear-icon svg { width: 8px; height: 8px; stroke: #fff; fill: none; stroke-width: 2.5; stroke-linecap: round; }
+
+.helper-text { font-size: 12px; color: var(--color-text-hint); }
+.helper-text.error { color: var(--color-error); }
+
+/* ══════════════════════════════════════════
+   INPUTS — LINE TYPE (Float Label)
+   ══════════════════════════════════════════ */
+.float-field { position: relative; }
+.float-field input {
+  width: 100%; height: 52px; padding: 22px 40px 6px 0;
+  border: none; background: transparent;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 16px; font-weight: 500; color: var(--color-text);
+  outline: none; letter-spacing: -0.32px;
+  position: relative; z-index: 1;
+  caret-color: var(--primary);
+}
+.field-line {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 1.5px; background: var(--gray-08); overflow: hidden;
+}
+.field-line::after {
+  content: ''; position: absolute; bottom: 0; left: 50%; right: 50%;
+  height: 100%; background: var(--primary);
+  transition: left .25s cubic-bezier(0.4,0,0.2,1), right .25s cubic-bezier(0.4,0,0.2,1);
+}
+.float-field.ff-focused .field-line::after { left: 0; right: 0; }
+.float-field.ff-error   .field-line::after { left: 0; right: 0; background: var(--color-error); }
+
+.float-label {
+  position: absolute; left: 0; top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px; font-weight: 400; color: var(--gray-07);
+  letter-spacing: -0.32px; pointer-events: none;
+  transition: top .22s cubic-bezier(0.4,0,0.2,1),
+    font-size .22s cubic-bezier(0.4,0,0.2,1),
+    font-weight .22s cubic-bezier(0.4,0,0.2,1),
+    color .22s cubic-bezier(0.4,0,0.2,1),
+    transform .22s cubic-bezier(0.4,0,0.2,1);
+  transform-origin: left top;
+}
+.float-field.ff-focused .float-label,
+.float-field.ff-filled  .float-label {
+  top: 6px; transform: translateY(0) scale(0.75);
+  font-weight: 600; color: var(--color-text-sub);
+}
+.float-field.ff-focused .float-label { color: var(--primary); }
+.float-field.ff-error   .float-label { color: var(--color-error); }
+
+.ff-clear {
+  position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+  width: 28px; height: 28px; border: none; background: none;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  z-index: 2; opacity: 0; transition: opacity .15s; border-radius: 50%; padding: 0;
+}
+.float-field.ff-filled .ff-clear { opacity: 1; }
+.ff-clear:active { background: var(--gray-10); }
+.ff-clear-icon {
+  width: 18px; height: 18px; background: var(--gray-06);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.ff-clear:active .ff-clear-icon { background: var(--gray-04); }
+.ff-clear-icon svg { width: 8px; height: 8px; stroke: #fff; fill: none; stroke-width: 2.5; stroke-linecap: round; }
+
+.ff-error-msg {
+  display: block; font-size: 12px; font-weight: 500;
+  color: var(--color-error); letter-spacing: -0.24px;
+  margin-top: 8px; opacity: 0; transform: translateY(-4px);
+  transition: opacity .2s ease, transform .2s ease;
+  height: 0; overflow: hidden; pointer-events: none;
+}
+.float-field.ff-error .ff-error-msg { opacity: 1; transform: translateY(0); height: auto; }
+
+@keyframes ff-shake {
+  0%,100%{ transform:translateX(0); }
+  20%{ transform:translateX(-5px); }
+  40%{ transform:translateX(5px); }
+  60%{ transform:translateX(-4px); }
+  80%{ transform:translateX(4px); }
+}
+.float-field.ff-shake { animation: ff-shake .35s ease; }
+
+/* ══════════════════════════════════════════
+   FORM COMPONENTS
+   ══════════════════════════════════════════ */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+.form-panel {
+  background: #fff; border-radius: var(--radius-card);
+  padding: 28px; border: 1px solid var(--gray-09);
+}
+.form-panel-title {
+  font-size: 13px; font-weight: 700; color: var(--color-text);
+  margin-bottom: 6px;
+  display: flex; align-items: center; gap: 8px;
+}
+.form-panel-desc { font-size: 12px; color: var(--color-text-hint); margin-bottom: 24px; line-height: 1.6; }
+
+.form-section { margin-bottom: 28px; }
+.form-section:last-child { margin-bottom: 0; }
+.form-section-title { font-size: 11px; font-weight: 600; color: var(--color-text-hint); margin-bottom: 14px; letter-spacing: 0.04em; text-transform: uppercase; }
+
+.form-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray-10); gap: 20px; }
+.form-row:last-child { border-bottom: none; }
+.form-row-label { width: 100px; font-size: 12px; font-weight: 600; color: var(--gray-06); flex-shrink: 0; }
+.form-items { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+
+/* Custom Form Controls */
+.form-label {
+  display: inline-flex; align-items: center;
+  cursor: pointer; position: relative;
+  transition: background-color 0.2s;
+}
+.form-label span { color: var(--color-text); user-select: none; }
+.form-label input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+.custom-radio {
+  position: relative; display: inline-block;
+  border: 2px solid var(--gray-07); border-radius: 50%;
+  background-color: white; transition: all 0.2s ease;
+}
+.custom-radio::after {
+  content: ''; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  border-radius: 50%; background-color: var(--btn-primary);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-checkbox {
+  position: relative; display: inline-block;
+  border: 2px solid var(--gray-07); border-radius: 4px;
+  background-color: white; transition: all 0.2s ease;
+}
+.custom-checkbox::after {
+  content: ''; position: absolute; top: 50%; left: 50%;
+  width: 100%; height: 100%;
+  transform: translate(-50%, -50%) scale(0);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-size: 70%; background-position: center; background-repeat: no-repeat;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-toggle {
+  position: relative; display: inline-block;
+  width: var(--t-width, 36px); height: var(--t-height, 20px);
+  margin-right: var(--t-margin, 8px); border-radius: var(--t-height, 20px);
+  background-color: var(--gray-08); transition: background-color 0.2s ease;
+}
+.custom-toggle::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: var(--t-dot, 16px); height: var(--t-dot, 16px);
+  background-color: white; border-radius: 50%;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Hover */
+.form-label:hover .custom-radio,
+.form-label:hover .custom-checkbox { border-color: var(--gray-05); }
+.form-label:hover .custom-toggle { background-color: var(--gray-07); }
+
+/* Checked */
+.form-label input:checked + .custom-radio,
+.form-label input:checked + .custom-checkbox { border-color: var(--btn-primary); }
+.form-label input:checked + .custom-checkbox,
+.form-label input:checked + .custom-toggle { background-color: var(--btn-primary); }
+.form-label input:checked + .custom-radio::after,
+.form-label input:checked + .custom-checkbox::after { transform: translate(-50%, -50%) scale(1); }
+.form-label input:checked + .custom-toggle::after {
+  transform: translateX(calc(var(--t-width, 36px) - var(--t-dot, 16px) - 4px));
+}
+.form-label input:checked:hover + .custom-toggle { filter: brightness(0.95); }
+
+/* Focus */
+.form-label input:focus-visible + .custom-radio,
+.form-label input:focus-visible + .custom-checkbox,
+.form-label input:focus-visible + .custom-toggle {
+  outline: 2px solid var(--btn-primary); outline-offset: 2px;
+}
+
+/* Sizes */
+.s-16 { --t-width:28px; --t-height:16px; --t-dot:12px; --t-margin:8px; }
+.s-16 .custom-radio, .s-16 .custom-checkbox { width:16px; height:16px; margin-right:8px; }
+.s-16 .custom-radio::after { width:8px; height:8px; }
+.s-16 span { font-size:13px; }
+
+.s-18 { --t-width:32px; --t-height:18px; --t-dot:14px; --t-margin:8px; }
+.s-18 .custom-radio, .s-18 .custom-checkbox { width:18px; height:18px; margin-right:8px; }
+.s-18 .custom-radio::after { width:9px; height:9px; }
+.s-18 span { font-size:14px; }
+
+.s-20 { --t-width:36px; --t-height:20px; --t-dot:16px; --t-margin:8px; }
+.s-20 .custom-radio, .s-20 .custom-checkbox { width:20px; height:20px; margin-right:8px; }
+.s-20 .custom-radio::after { width:10px; height:10px; }
+.s-20 span { font-size:15px; }
+
+.s-24 { --t-width:44px; --t-height:24px; --t-dot:20px; --t-margin:12px; }
+.s-24 .custom-radio, .s-24 .custom-checkbox { width:24px; height:24px; margin-right:10px; }
+.s-24 .custom-radio::after { width:12px; height:12px; }
+.s-24 span { font-size:16px; }
+
+/* Touch target */
+.touch-enabled .form-label { min-height: 44px; padding-right: 12px; }
+body.show-targets .touch-enabled .form-label {
+  background-color: rgba(239,68,68,0.08);
+  border: 1px dashed rgba(239,68,68,0.4);
+  border-radius: 4px;
+}
+
+/* MO toggle row */
+.mo-toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0; border-bottom: 1px solid var(--gray-10);
+}
+.mo-toggle-row:last-child { border-bottom: none; }
+.mo-toggle-row span { font-size: 15px; color: var(--color-text); }
+.mo-toggle-row .form-label { margin: 0; }
+.mo-toggle-row .form-label span { display: none; }
+.mo-toggle-row .custom-toggle { margin-right: 0; }
+
+/* Touch toggle button */
+.touch-control-btn {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--gray-10); padding: 10px 16px;
+  border-radius: 8px; border: none; cursor: pointer;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 12px; font-weight: 600; color: var(--color-text-sub);
+  transition: background 0.15s;
+}
+.touch-control-btn:hover { background: var(--gray-09); }
+.touch-toggle-track {
+  width: 32px; height: 18px; border-radius: 18px;
+  background: var(--gray-07); position: relative;
+  transition: background 0.2s; flex-shrink: 0;
+}
+.touch-toggle-track.on { background: var(--btn-primary); }
+.touch-toggle-thumb {
+  position: absolute; top: 2px; left: 2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #fff; transition: transform 0.2s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.touch-toggle-track.on .touch-toggle-thumb { transform: translateX(14px); }
+
+/* Toast demo layout */
+.toast-demo-layout {
+  display: flex; gap: 32px; align-items: flex-start;
+}
+.toast-left { flex: 1; min-width: 0; }
+.toast-right { flex-shrink: 0; }
+
+/* Mobile frame */
+.mobile-frame { display: flex; justify-content: center; }
+.mobile-shell {
+  width: 320px;
+  background: #fff;
+  border-radius: 44px;
+  box-shadow: 0 0 0 9px #1a1a1a, 0 0 0 11px #2d2d2d, 0 32px 80px rgba(0,0,0,0.45);
+  overflow: hidden;
+  position: relative;
+  display: flex; flex-direction: column;
+}
+.mobile-notch {
+  width: 100px; height: 26px;
+  background: #1a1a1a;
+  border-radius: 0 0 18px 18px;
+  margin: 0 auto;
+  position: relative; z-index: 2;
+}
+.mobile-statusbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 24px 4px;
+  margin-top: -6px;
+}
+.mobile-screen {
+  flex: 1;
+  background: #F6F6F7;
+  min-height: 580px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.mobile-screen-placeholder {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  color: var(--gray-07);
+  font-size: 12px; font-weight: 500;
+}
+.mobile-home-indicator {
+  height: 32px; display: flex; align-items: center; justify-content: center;
+  background: #fff;
+}
+.mobile-home-indicator::after {
+  content: ''; width: 100px; height: 4px;
+  background: #1a1a1a; border-radius: 4px; opacity: 0.15;
+}
+
+/* Mobile toast */
+.mobile-toast {
+  position: absolute;
+  bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(14px);
+  background: rgba(21,27,36,0.94);
+  backdrop-filter: blur(8px);
+  border-radius: 100px;
+  padding: 11px 20px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: calc(100% - 40px);
+  opacity: 0;
+  transition: all 0.28s cubic-bezier(0.4,0,0.2,1);
+  pointer-events: none;
+  z-index: 10;
+}
+.mobile-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.mobile-toast-icon { width: 16px; height: 16px; flex-shrink: 0; display: none; }
+.mobile-toast-icon.visible { display: block; }
+.mobile-toast span { font-size: 12px; font-weight: 500; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.2px; }
+
+/* ══════════════════════════════════════════
+   TOAST
+   ══════════════════════════════════════════ */
+.toast-trigger-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+.toast-btn {
+  height: 48px; border-radius: var(--radius-btn);
+  border: 1px solid var(--gray-08); background: #fff;
+  font-family: 'Pretendard', sans-serif; font-size: 13px; font-weight: 600;
+  color: var(--color-text-sub); cursor: pointer;
+  transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.toast-btn:hover { background: var(--gray-10); }
+.toast-btn:active { transform: scale(0.97); }
+.toast-btn-success { border-left: 4px solid var(--color-success); }
+.toast-btn-error   { border-left: 4px solid var(--color-error); }
+.toast-btn-cancel  { border-left: 4px solid var(--gray-06); }
+.toast-btn-info    { border-left: 4px solid var(--btn-primary); }
+
+.toast-spec-list { display: flex; flex-direction: column; gap: 10px; }
+.toast-spec-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--gray-10); border-radius: 8px; }
+.toast-spec-icon { width: 18px; height: 18px; flex-shrink: 0; }
+.toast-spec-text { font-size: 13px; font-weight: 500; color: #fff; }
+.toast-spec-preview {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(29,31,32,0.92); backdrop-filter: blur(8px);
+  border-radius: 100px; padding: 12px 20px; width: fit-content;
+}
+
+/* Toast popup */
+#kit-toast {
+  position: fixed; bottom: 40px; left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: rgba(21,27,36,0.94); backdrop-filter: blur(8px);
+  border-radius: 100px; padding: 13px 24px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.24);
+  opacity: 0; pointer-events: none;
+  transition: all 0.28s cubic-bezier(0.4,0,0.2,1);
+  z-index: 9999; min-width: 200px; max-width: 360px;
+}
+#kit-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.kit-toast-icon { width: 18px; height: 18px; flex-shrink: 0; display: none; }
+.kit-toast-icon.visible { display: block; }
+#kit-toast-text { font-size: 14px; font-weight: 500; color: #fff; letter-spacing: -0.28px; white-space: nowrap; }
+
+/* UX writing card */
+.writing-card { background: #fff; border-radius: var(--radius-card); padding: 24px 28px; border: 1px solid var(--gray-09); }
+.writing-rule { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--gray-10); }
+.writing-rule:last-child { border-bottom: none; padding-bottom: 0; }
+.writing-rule:first-child { padding-top: 0; }
+.writing-num { font-size: 11px; font-weight: 800; color: var(--btn-primary); width: 18px; flex-shrink: 0; padding-top: 1px; }
+.writing-text { font-size: 13px; color: var(--color-text-sub); line-height: 1.6; }
+.writing-text strong { color: var(--color-text); }
+</style>
+</head>
+<body>
+
+<!-- ══════ SIDEBAR ══════ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-name">GrayMagus</div>
+    <div class="sidebar-logo-sub">UI Kit v2.0</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Components</div>
+    <button class="nav-item active" onclick="showPanel('btn')">
+      <span class="nav-dot"></span>Button
+    </button>
+    <button class="nav-item" onclick="showPanel('input')">
+      <span class="nav-dot"></span>Input
+    </button>
+    <button class="nav-item" onclick="showPanel('form')">
+      <span class="nav-dot"></span>Form Controls
+    </button>
+    <button class="nav-item" onclick="showPanel('feedback')">
+      <span class="nav-dot"></span>Toast
+    </button>
+  </div>
+</nav>
+
+<!-- ══════ CONTENT ══════ -->
+<main class="content">
+
+  <!-- ─────────────────────────────
+       PANEL: BUTTON
+  ───────────────────────────────── -->
+  <div class="panel active" id="panel-btn">
+    <p class="panel-title">GrayMagus Studio</p>
+    <h1 class="panel-headline">Button</h1>
+
+    <!-- Scale -->
+    <div class="section">
+      <div class="section-label">Scale</div>
+      <div class="spec-card">
+        <div class="spec-row">
+          <div class="spec-meta"><div class="spec-name">XLarge</div><div class="spec-value">H 56 / F 18 Bold</div></div>
+          <div class="spec-demo">
+            <button class="btn btn-xl btn-solid" style="min-width:200px;">버튼 레이블</button>
+            <button class="btn btn-xl btn-outline" style="min-width:200px;">버튼 레이블</button>
+            <span class="tag tag-dark">메인 CTA</span>
+          </div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-meta"><div class="spec-name">Large</div><div class="spec-value">H 48 / F 16 Bold</div></div>
+          <div class="spec-demo">
+            <button class="btn btn-lg btn-solid" style="min-width:180px;">버튼 레이블</button>
+            <button class="btn btn-lg btn-outline" style="min-width:180px;">버튼 레이블</button>
+            <span class="tag tag-dark">서브 CTA</span>
+          </div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-meta"><div class="spec-name">Medium</div><div class="spec-value">H 40 / F 15 Bold</div></div>
+          <div class="spec-demo">
+            <button class="btn btn-md btn-solid">버튼 레이블</button>
+            <button class="btn btn-md btn-outline">버튼 레이블</button>
+            <span class="tag tag-gray">보조 액션</span>
+          </div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-meta"><div class="spec-name">Small</div><div class="spec-value">H 32 / F 13 SemiBold</div></div>
+          <div class="spec-demo">
+            <button class="btn btn-sm btn-solid">버튼</button>
+            <button class="btn btn-sm btn-outline">버튼</button>
+            <span class="tag tag-gray">인라인</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Radius Rationale -->
+      <div class="rationale-note">
+        <div class="rationale-note-title">Design Rationale — Border Radius</div>
+        <div class="rationale-swatches">
+          <div class="rationale-swatch">
+            <div class="rationale-swatch-bar" style="background:var(--btn-primary);border-radius:0px;"></div>
+            <div class="rationale-swatch-label">0px</div>
+            <div class="rationale-swatch-desc">관공서<br>레거시</div>
+          </div>
+          <div class="rationale-swatch">
+            <div class="rationale-swatch-bar" style="background:var(--btn-primary);border-radius:4px;"></div>
+            <div class="rationale-swatch-label">4px</div>
+            <div class="rationale-swatch-desc">단정<br>B2B</div>
+          </div>
+          <div class="rationale-swatch current">
+            <div class="rationale-swatch-bar" style="background:var(--btn-primary);border-radius:6px;"></div>
+            <div class="rationale-swatch-label">6px ✓</div>
+            <div class="rationale-swatch-desc">균형<br>GrayMagus</div>
+          </div>
+          <div class="rationale-swatch">
+            <div class="rationale-swatch-bar" style="background:var(--btn-primary);border-radius:8px;"></div>
+            <div class="rationale-swatch-label">8px</div>
+            <div class="rationale-swatch-desc">트렌드<br>소비자앱</div>
+          </div>
+          <div class="rationale-swatch">
+            <div class="rationale-swatch-bar" style="background:var(--btn-primary);border-radius:12px;"></div>
+            <div class="rationale-swatch-label">12px+</div>
+            <div class="rationale-swatch-desc">친근함<br>카드/금융</div>
+          </div>
+          <div class="rationale-swatch">
+            <div class="rationale-swatch-bar" style="background:var(--btn-primary);border-radius:100px;"></div>
+            <div class="rationale-swatch-label">Pill</div>
+            <div class="rationale-swatch-desc">소프트<br>태그/뱃지</div>
+          </div>
+        </div>
+        <div class="rationale-body">GrayMagus Studio 기본값은 <strong>6px</strong>. 전문성과 접근성의 균형점. 프로젝트 성격에 따라 튜닝 — 어린이·헬스케어는 10~12px, 금융·엔터프라이즈 B2B는 4px.</div>
+      </div>
+    </div>
+
+    <!-- States -->
+    <div class="section">
+      <div class="section-label">Interaction States</div>
+      <div class="spec-card">
+        <p class="spec-card-desc">마우스를 올려보세요. 클릭도 해보세요. — Solid</p>
+        <div class="state-table-wrap">
+          <table class="state-table">
+            <thead><tr><th>Size</th><th>Default</th><th>Hover</th><th>Pressed</th><th>Disabled</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><div class="spec-name">XLarge</div><div class="spec-value">56px</div></td>
+                <td><button class="btn btn-xl btn-solid">레이블</button></td>
+                <td><button class="btn btn-xl btn-solid" style="background:var(--btn-primary-hover);">레이블</button></td>
+                <td><button class="btn btn-xl btn-solid" style="background:var(--btn-primary-press);">레이블</button></td>
+                <td><button class="btn btn-xl btn-solid" disabled>레이블</button></td>
+              </tr>
+              <tr>
+                <td><div class="spec-name">Large</div><div class="spec-value">48px</div></td>
+                <td><button class="btn btn-lg btn-solid">레이블</button></td>
+                <td><button class="btn btn-lg btn-solid" style="background:var(--btn-primary-hover);">레이블</button></td>
+                <td><button class="btn btn-lg btn-solid" style="background:var(--btn-primary-press);">레이블</button></td>
+                <td><button class="btn btn-lg btn-solid" disabled>레이블</button></td>
+              </tr>
+              <tr>
+                <td><div class="spec-name">Medium</div><div class="spec-value">40px</div></td>
+                <td><button class="btn btn-md btn-solid">레이블</button></td>
+                <td><button class="btn btn-md btn-solid" style="background:var(--btn-primary-hover);">레이블</button></td>
+                <td><button class="btn btn-md btn-solid" style="background:var(--btn-primary-press);">레이블</button></td>
+                <td><button class="btn btn-md btn-solid" disabled>레이블</button></td>
+              </tr>
+              <tr>
+                <td><div class="spec-name">Small</div><div class="spec-value">32px</div></td>
+                <td><button class="btn btn-sm btn-solid">버튼</button></td>
+                <td><button class="btn btn-sm btn-solid" style="background:var(--btn-primary-hover);">버튼</button></td>
+                <td><button class="btn btn-sm btn-solid" style="background:var(--btn-primary-press);">버튼</button></td>
+                <td><button class="btn btn-sm btn-solid" disabled>버튼</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="spec-card">
+        <p class="spec-card-desc">Outlined</p>
+        <div class="state-table-wrap">
+          <table class="state-table">
+            <thead><tr><th>Size</th><th>Default</th><th>Hover</th><th>Pressed</th><th>Disabled</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><div class="spec-name">XLarge</div><div class="spec-value">56px</div></td>
+                <td><button class="btn btn-xl btn-outline">레이블</button></td>
+                <td><button class="btn btn-xl btn-outline" style="background:var(--gray-10);border-color:var(--gray-06);color:var(--btn-primary-hover);">레이블</button></td>
+                <td><button class="btn btn-xl btn-outline" style="background:var(--gray-09);border-color:var(--gray-05);color:var(--btn-primary-press);">레이블</button></td>
+                <td><button class="btn btn-xl btn-outline" disabled>레이블</button></td>
+              </tr>
+              <tr>
+                <td><div class="spec-name">Large</div><div class="spec-value">48px</div></td>
+                <td><button class="btn btn-lg btn-outline">레이블</button></td>
+                <td><button class="btn btn-lg btn-outline" style="background:var(--gray-10);border-color:var(--gray-06);color:var(--btn-primary-hover);">레이블</button></td>
+                <td><button class="btn btn-lg btn-outline" style="background:var(--gray-09);border-color:var(--gray-05);color:var(--btn-primary-press);">레이블</button></td>
+                <td><button class="btn btn-lg btn-outline" disabled>레이블</button></td>
+              </tr>
+              <tr>
+                <td><div class="spec-name">Medium</div><div class="spec-value">40px</div></td>
+                <td><button class="btn btn-md btn-outline">레이블</button></td>
+                <td><button class="btn btn-md btn-outline" style="background:var(--gray-10);border-color:var(--gray-06);color:var(--btn-primary-hover);">레이블</button></td>
+                <td><button class="btn btn-md btn-outline" style="background:var(--gray-09);border-color:var(--gray-05);color:var(--btn-primary-press);">레이블</button></td>
+                <td><button class="btn btn-md btn-outline" disabled>레이블</button></td>
+              </tr>
+              <tr>
+                <td><div class="spec-name">Small</div><div class="spec-value">32px</div></td>
+                <td><button class="btn btn-sm btn-outline">버튼</button></td>
+                <td><button class="btn btn-sm btn-outline" style="background:var(--gray-10);border-color:var(--gray-06);color:var(--btn-primary-hover);">버튼</button></td>
+                <td><button class="btn btn-sm btn-outline" style="background:var(--gray-09);border-color:var(--gray-05);color:var(--btn-primary-press);">버튼</button></td>
+                <td><button class="btn btn-sm btn-outline" disabled>버튼</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full Width -->
+    <div class="section">
+      <div class="section-label">Full Width — 모바일 기준</div>
+      <div class="fullwidth-demo">
+        <button class="btn btn-xl btn-solid">다음</button>
+        <button class="btn btn-lg btn-solid">저장하기</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-lg btn-outline" style="flex:1;">취소</button>
+          <button class="btn btn-lg btn-solid" style="flex:1;">확인</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────────────────────
+       PANEL: INPUT
+  ───────────────────────────────── -->
+  <div class="panel" id="panel-input">
+    <p class="panel-title">GrayMagus Studio</p>
+    <h1 class="panel-headline">Input</h1>
+
+    <!-- Box Type -->
+    <div class="section">
+      <div class="section-label">Box Type</div>
+      <div class="spec-card">
+        <p class="spec-card-desc">H 48px / Font 16px / Radius 6px — 직접 입력해보세요.</p>
+        <div class="input-demo-grid">
+          <div class="input-demo-item">
+            <div class="input-state-tag">Default</div>
+            <div class="input-wrap">
+              <label class="input-label-text">레이블</label>
+              <div class="input-box-wrap" id="bw-1">
+                <input class="input-box" type="text" placeholder="플레이스홀더" oninput="bxInput(this,'bw-1')"/>
+                <button class="box-clear" onmousedown="bxClear('bw-1')" tabindex="-1"><div class="box-clear-icon"><svg viewBox="0 0 8 8"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg></div></button>
+              </div>
+            </div>
+          </div>
+          <div class="input-demo-item">
+            <div class="input-state-tag">Focus</div>
+            <div class="input-wrap">
+              <label class="input-label-text focused">레이블</label>
+              <div class="input-box-wrap" id="bw-2">
+                <input class="input-box" type="text" placeholder="입력 중..." style="background:#fff;border-color:var(--primary);box-shadow:0 0 0 3px rgba(255,46,86,0.12);" oninput="bxInput(this,'bw-2')"/>
+                <button class="box-clear" onmousedown="bxClear('bw-2')" tabindex="-1"><div class="box-clear-icon"><svg viewBox="0 0 8 8"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg></div></button>
+              </div>
+            </div>
+          </div>
+          <div class="input-demo-item">
+            <div class="input-state-tag">Filled</div>
+            <div class="input-wrap">
+              <label class="input-label-text">레이블</label>
+              <div class="input-box-wrap has-value" id="bw-3">
+                <input class="input-box filled" type="text" value="입력된 텍스트" oninput="bxInput(this,'bw-3')"/>
+                <button class="box-clear" onmousedown="bxClear('bw-3')" tabindex="-1"><div class="box-clear-icon"><svg viewBox="0 0 8 8"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg></div></button>
+              </div>
+            </div>
+          </div>
+          <div class="input-demo-item">
+            <div class="input-state-tag">Error</div>
+            <div class="input-wrap">
+              <label class="input-label-text error">레이블</label>
+              <div class="input-box-wrap has-value" id="bw-4">
+                <input class="input-box error" type="text" value="잘못된 입력값" oninput="bxInput(this,'bw-4')"/>
+                <button class="box-clear" onmousedown="bxClear('bw-4')" tabindex="-1"><div class="box-clear-icon"><svg viewBox="0 0 8 8"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg></div></button>
+              </div>
+              <span class="helper-text error">올바른 형식으로 입력해주세요.</span>
+            </div>
+          </div>
+          <div class="input-demo-item">
+            <div class="input-state-tag">Disabled</div>
+            <div class="input-wrap">
+              <label class="input-label-text">레이블</label>
+              <div class="input-box-wrap">
+                <input class="input-box" type="text" placeholder="비활성화 상태" disabled/>
+              </div>
+            </div>
+          </div>
+          <div class="input-demo-item">
+            <div class="input-state-tag">Helper Text</div>
+            <div class="input-wrap">
+              <label class="input-label-text">레이블</label>
+              <div class="input-box-wrap" id="bw-6">
+                <input class="input-box" type="text" placeholder="플레이스홀더" oninput="bxInput(this,'bw-6')"/>
+                <button class="box-clear" onmousedown="bxClear('bw-6')" tabindex="-1"><div class="box-clear-icon"><svg viewBox="0 0 8 8"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg></div></button>
+              </div>
+              <span class="helper-text">보조 안내 텍스트가 여기 들어와요.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Line Type -->
+    <div class="section">
+      <div class="section-label">Line Type — Float Label</div>
+      <div class="spec-card">
+        <p class="spec-card-desc">H 52px / Font 16px / 플로팅 라벨 + 중앙 언더라인 애니메이션 — 직접 클릭해서 입력해보세요. 에러 필드는 클릭 시 흔들립니다.</p>
+        <div class="input-demo-grid">
+          <div class="input-demo-item">
+            <div class="input-state-tag">Default</div>
+            <div class="float-field" id="ff-1">
+              <input type="text" onfocus="ffFocus('ff-1')" onblur="ffBlur('ff-1')" oninput="ffInput(this,'ff-1')"/>
+              <span class="float-label">레이블</span>
+              <div class="field-line"></div>
+              <button class="ff-clear" onmousedown="ffClear('ff-1')" tabindex="-1"><div class="ff-clear-icon"><svg viewBox="0 0 8 8"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg></div></button>
+            </div>
+          </div>
+          <div class="input-demo-item">
+            <div class="input-state-tag">Focus</div>
+            <div class="float-field ff-focused" id="ff-2">
+              <input type="text" onfocus="ffFocus('ff-2')" onblur="ffBlur('ff-2')" oninput="ffInput(this,'ff-2')"/>
+              <span class="float-label">레이블</span>
+              <div class="field-line"></div>
+              <button class="ff-clear" onmousedown="ffClear('ff-2')" tabindex="-1"><div class="ff-clear-icon"><svg viewBox="0 0 8 8"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg></div></button>
+            </div>
+          </div>
+          <div class="input-demo-item">
+            <div class="input-state-tag">Filled</div>
+            <div class="float-field ff-filled" id="ff-3">
+              <input type="text" value="입력된 텍스트" onfocus="ffFocus('ff-3')" onblur="ffBlur('ff-3')" oninput="ffInput(this,'ff-3')"/>
+              <span class="float-label">레이블</span>
+              <div class="field-line"></div>
+              <button class="ff-clear" onmousedown="ffClear('ff-3')" tabindex="-1"><div class="ff-clear-icon"><svg viewBox="0 0 8 8"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg></div></button>
+            </div>
+          </div>
+          <div class="input-demo-item">
+            <div class="input-state-tag">Error</div>
+            <div class="float-field ff-filled ff-error" id="ff-4">
+              <input type="text" value="잘못된 입력값" onfocus="ffFocus('ff-4')" onblur="ffBlur('ff-4')" oninput="ffInput(this,'ff-4')"/>
+              <span class="float-label">레이블</span>
+              <div class="field-line"></div>
+              <button class="ff-clear" onmousedown="ffClear('ff-4')" tabindex="-1"><div class="ff-clear-icon"><svg viewBox="0 0 8 8"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg></div></button>
+            </div>
+            <div class="ff-error-msg" style="opacity:1;transform:translateY(0);height:auto;">올바른 형식으로 입력해주세요.</div>
+          </div>
+          <div class="input-demo-item">
+            <div class="input-state-tag">Disabled</div>
+            <div class="float-field" style="opacity:0.45;pointer-events:none;">
+              <input type="text" disabled/>
+              <span class="float-label">레이블</span>
+              <div class="field-line"></div>
+            </div>
+          </div>
+          <div class="input-demo-item">
+            <div class="input-state-tag">Helper Text</div>
+            <div class="float-field" id="ff-6">
+              <input type="text" onfocus="ffFocus('ff-6')" onblur="ffBlur('ff-6')" oninput="ffInput(this,'ff-6')"/>
+              <span class="float-label">레이블</span>
+              <div class="field-line"></div>
+              <button class="ff-clear" onmousedown="ffClear('ff-6')" tabindex="-1"><div class="ff-clear-icon"><svg viewBox="0 0 8 8"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg></div></button>
+            </div>
+            <span class="helper-text" style="margin-top:8px;">보조 안내 텍스트가 여기 들어와요.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────────────────────
+       PANEL: FORM CONTROLS
+  ───────────────────────────────── -->
+  <div class="panel" id="panel-form">
+    <p class="panel-title">GrayMagus Studio</p>
+    <h1 class="panel-headline">Form Controls</h1>
+
+    <div class="touch-control" style="margin-bottom:20px;">
+      <button id="touchToggleBtn" onclick="toggleTouch()" class="touch-control-btn">
+        <div class="touch-toggle-track" id="touchTrack">
+          <div class="touch-toggle-thumb" id="touchThumb"></div>
+        </div>
+        <span id="touchLabel">MO 터치 영역 시각화 (44px)</span>
+      </button>
+    </div>
+
+    <div class="form-grid">
+      <!-- PC -->
+      <div class="form-panel">
+        <div class="form-panel-title">💻 PC Environment <span class="tag tag-gray" style="font-size:11px;">Hover & Click</span></div>
+        <div class="form-panel-desc">마우스 정밀도를 고려해 시각적 크기를 16~20px 사이로 콤팩트하게 유지합니다.</div>
+
+        <div class="form-section">
+          <div class="form-section-title">Radio</div>
+          <div class="form-row s-16">
+            <div class="form-row-label">16px</div>
+            <div class="form-items">
+              <label class="form-label"><input type="radio" name="pc-r" checked><div class="custom-radio"></div><span>항목 1</span></label>
+              <label class="form-label"><input type="radio" name="pc-r"><div class="custom-radio"></div><span>항목 2</span></label>
+              <label class="form-label"><input type="radio" name="pc-r" disabled><div class="custom-radio"></div><span style="color:var(--color-text-hint);">비활성</span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Checkbox</div>
+          <div class="form-row s-18">
+            <div class="form-row-label">18px</div>
+            <div class="form-items">
+              <label class="form-label"><input type="checkbox" checked><div class="custom-checkbox"></div><span>옵션 A</span></label>
+              <label class="form-label"><input type="checkbox"><div class="custom-checkbox"></div><span>옵션 B</span></label>
+              <label class="form-label"><input type="checkbox" disabled><div class="custom-checkbox"></div><span style="color:var(--color-text-hint);">비활성</span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Toggle</div>
+          <div class="form-row s-16">
+            <div class="form-row-label">16px (28×16)</div>
+            <div class="form-items">
+              <label class="form-label"><input type="checkbox" checked><div class="custom-toggle"></div><span>알림 켜기</span></label>
+            </div>
+          </div>
+          <div class="form-row s-20">
+            <div class="form-row-label">20px (36×20)</div>
+            <div class="form-items">
+              <label class="form-label"><input type="checkbox"><div class="custom-toggle"></div><span>다크모드</span></label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile -->
+      <div class="form-panel">
+        <div class="form-panel-title">📱 MO Environment <span class="tag tag-gray" style="font-size:11px;">Touch Target</span></div>
+        <div class="form-panel-desc">최소 <strong>44px 터치 영역</strong>을 확보합니다. 시각적 크기는 20~24px을 권장해요.</div>
+
+        <div class="form-section">
+          <div class="form-section-title">Radio</div>
+          <div class="form-row s-24 touch-enabled" style="align-items:flex-start;">
+            <div class="form-row-label" style="padding-top:10px;">24px / 44px</div>
+            <div class="form-items" style="flex-direction:column;gap:4px;flex:1;">
+              <label class="form-label" style="width:100%;"><input type="radio" name="mo-r" checked><div class="custom-radio"></div><span>전체 너비 터치 영역 1</span></label>
+              <label class="form-label" style="width:100%;"><input type="radio" name="mo-r"><div class="custom-radio"></div><span>전체 너비 터치 영역 2</span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Checkbox</div>
+          <div class="form-row s-24 touch-enabled">
+            <div class="form-row-label">24px / 44px</div>
+            <div class="form-items">
+              <label class="form-label"><input type="checkbox" checked><div class="custom-checkbox"></div><span>필수 약관에 동의합니다</span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Toggle — 우측 배치 (설정 화면)</div>
+          <div class="touch-enabled" style="padding:4px 0;">
+            <div class="mo-toggle-row">
+              <span>마케팅 수신 동의</span>
+              <label class="form-label s-24"><input type="checkbox" checked><div class="custom-toggle" style="margin-right:0;"></div></label>
+            </div>
+            <div class="mo-toggle-row">
+              <span>생체 인증 로그인</span>
+              <label class="form-label s-24"><input type="checkbox"><div class="custom-toggle" style="margin-right:0;"></div></label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────────────────────
+       PANEL: TOAST
+  ───────────────────────────────── -->
+  <div class="panel" id="panel-feedback">
+    <p class="panel-title">GrayMagus Studio</p>
+    <h1 class="panel-headline">Toast</h1>
+
+    <!-- Live Demo — 좌우 레이아웃 -->
+    <div class="section">
+      <div class="section-label">Live Demo</div>
+      <div class="toast-demo-layout">
+
+        <!-- 좌측: 트리거 + Spec + Writing -->
+        <div class="toast-left">
+          <div class="spec-card" style="margin-bottom:12px;">
+            <p class="spec-card-desc">버튼을 누르면 우측 모바일 프레임에서 확인하세요.</p>
+            <div class="toast-trigger-grid">
+              <button class="toast-btn toast-btn-success" onclick="kitToast('success','Apple 계정을 연결했어요')">✅ 성공 / 완료</button>
+              <button class="toast-btn toast-btn-error"   onclick="kitToast('error','연결에 실패했어요')">❌ 경고 / 에러</button>
+              <button class="toast-btn toast-btn-cancel"  onclick="kitToast('cancel','로그인이 취소되었어요')">⚪ 취소 / 철회</button>
+              <button class="toast-btn toast-btn-info"    onclick="kitToast('info','이미 등록된 필지 그룹이에요')">ℹ️ 단순 안내</button>
+            </div>
+          </div>
+
+          <div class="spec-card" style="margin-bottom:12px;">
+            <p class="spec-card-desc" style="margin-bottom:16px;">Spec</p>
+            <div class="spec-row"><div class="spec-meta"><div class="spec-name">형태</div></div><div class="spec-demo" style="font-size:13px;color:var(--color-text-sub);">다크 Pill / border-radius 100px / backdrop-blur(8px)</div></div>
+            <div class="spec-row"><div class="spec-meta"><div class="spec-name">폰트</div></div><div class="spec-demo" style="font-size:13px;color:var(--color-text-sub);">14px / Weight 500 / #FFFFFF</div></div>
+            <div class="spec-row"><div class="spec-meta"><div class="spec-name">패딩</div></div><div class="spec-demo" style="font-size:13px;color:var(--color-text-sub);">상하 13px / 좌우 24px</div></div>
+            <div class="spec-row"><div class="spec-meta"><div class="spec-name">노출 시간</div></div><div class="spec-demo" style="font-size:13px;color:var(--color-text-sub);">2.5초 후 자동 퇴장 / 재호출 시 즉시 갱신</div></div>
+            <div class="spec-row"><div class="spec-meta"><div class="spec-name">위치</div></div><div class="spec-demo" style="font-size:13px;color:var(--color-text-sub);">화면 하단 중앙 fixed / bottom 40px</div></div>
+            <div class="spec-row" style="border-bottom:none;">
+              <div class="spec-meta"><div class="spec-name">아이콘</div></div>
+              <div class="spec-demo" style="gap:10px;flex-wrap:wrap;">
+                <div class="toast-spec-preview"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#00B26A"/><path d="M8.5 12.5L11 15L16 9" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font-size:12px;color:#fff;font-weight:500;">성공</span></div>
+                <div class="toast-spec-preview"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#E03E3E"/><path d="M12 8V13M12 16H12.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg><span style="font-size:12px;color:#fff;font-weight:500;">에러</span></div>
+                <div class="toast-spec-preview"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#81878E"/><path d="M9 9L15 15M15 9L9 15" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg><span style="font-size:12px;color:#fff;font-weight:500;">취소</span></div>
+                <div class="toast-spec-preview"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#4C5259"/><path d="M12 16V11M12 8H12.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg><span style="font-size:12px;color:#fff;font-weight:500;">안내</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="writing-card">
+            <p class="spec-card-desc" style="margin-bottom:16px;">UX Writing 원칙</p>
+            <div class="writing-rule"><div class="writing-num">01</div><div class="writing-text">문장 끝의 시각적 노이즈를 줄이기 위해 <strong>마침표(.)는 생략</strong>합니다.</div></div>
+            <div class="writing-rule"><div class="writing-num">02</div><div class="writing-text">완료·변경 상태에는 안심을 주는 <strong>'~했어요' 동사형 문장</strong>을 사용합니다.</div></div>
+            <div class="writing-rule"><div class="writing-num">03</div><div class="writing-text">소셜 로그인 브랜드명은 <strong>영문 고유 명사(Kakao, Google, Apple)</strong>로 통일합니다.</div></div>
+          </div>
+        </div>
+
+        <!-- 우측: 모바일 프레임 -->
+        <div class="toast-right">
+          <div class="mobile-frame">
+            <div class="mobile-shell">
+              <!-- 상단 노치 -->
+              <div class="mobile-notch"></div>
+              <!-- 상태바 -->
+              <div class="mobile-statusbar">
+                <span style="font-size:13px;font-weight:600;color:#1D1F20;">9:41</span>
+                <div style="display:flex;gap:5px;align-items:center;">
+                  <svg width="15" height="11" viewBox="0 0 17 12" fill="#1D1F20"><rect x="0" y="4" width="3" height="8" rx="1" opacity=".3"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" opacity=".6"/><rect x="9" y="1" width="3" height="11" rx="1" opacity=".8"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+                  <svg width="14" height="11" viewBox="0 0 16 12" fill="none"><path d="M8 3C5.5 3 3.3 4.1 1.8 5.9L0 4.1C2 1.6 4.8 0 8 0s6 1.6 8 4.1L14.2 5.9C12.7 4.1 10.5 3 8 3z" fill="#1D1F20"/><path d="M8 6c-1.5 0-2.8.6-3.8 1.6L2.5 5.9C3.9 4.4 5.8 3.5 8 3.5s4.1.9 5.5 2.4L11.8 7.6C10.8 6.6 9.5 6 8 6z" fill="#1D1F20"/><circle cx="8" cy="10" r="2" fill="#1D1F20"/></svg>
+                  <svg width="22" height="11" viewBox="0 0 25 12" fill="none"><rect x=".5" y="1" width="20" height="10" rx="3" stroke="#1D1F20" stroke-width="1" opacity=".35"/><rect x="21.5" y="4" width="3" height="4" rx="1" fill="#1D1F20" opacity=".4"/><rect x="2" y="2.5" width="15" height="7" rx="2" fill="#1D1F20"/></svg>
+                </div>
+              </div>
+              <!-- 스크린 영역 -->
+              <div class="mobile-screen">
+                <div class="mobile-screen-placeholder">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--gray-08)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                  <span>App Screen</span>
+                </div>
+              </div>
+              <!-- 모바일 프레임 내부 토스트 -->
+              <div class="mobile-toast" id="mobile-toast">
+                <svg class="mobile-toast-icon" id="mti-success" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#00B26A"/><path d="M8.5 12.5L11 15L16 9" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <svg class="mobile-toast-icon" id="mti-error"   viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#E03E3E"/><path d="M12 8V13M12 16H12.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+                <svg class="mobile-toast-icon" id="mti-cancel"  viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#81878E"/><path d="M9 9L15 15M15 9L9 15" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+                <svg class="mobile-toast-icon" id="mti-info"    viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#4C5259"/><path d="M12 16V11M12 8H12.01" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+                <span id="mobile-toast-text"></span>
+              </div>
+              <!-- 홈 인디케이터 -->
+              <div class="mobile-home-indicator"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+/* ── Nav ── */
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+/* ── Box Input ── */
+function bxInput(el, wid) {
+  document.getElementById(wid).classList.toggle('has-value', el.value.length > 0);
+}
+function bxClear(wid) {
+  const w = document.getElementById(wid);
+  const inp = w.querySelector('input');
+  inp.value = ''; w.classList.remove('has-value');
+  setTimeout(() => inp.focus(), 0);
+}
+
+/* ── Float Field ── */
+function ffFocus(id) { document.getElementById(id).classList.add('ff-focused'); }
+function ffBlur(id)  { document.getElementById(id).classList.remove('ff-focused'); }
+function ffInput(el, id) {
+  const f = document.getElementById(id);
+  f.classList.toggle('ff-filled', el.value.length > 0);
+  f.classList.remove('ff-error');
+}
+function ffClear(id) {
+  const f = document.getElementById(id);
+  f.querySelector('input').value = '';
+  f.classList.remove('ff-filled','ff-error');
+  setTimeout(() => f.querySelector('input').focus(), 0);
+}
+document.getElementById('ff-4').querySelector('input').addEventListener('focus', function(){
+  const f = document.getElementById('ff-4');
+  if(f.classList.contains('ff-error')){
+    f.classList.remove('ff-shake'); void f.offsetWidth; f.classList.add('ff-shake');
+  }
+});
+
+/* ── Touch Toggle ── */
+let touchOn = false;
+function toggleTouch() {
+  touchOn = !touchOn;
+  document.body.classList.toggle('show-targets', touchOn);
+  document.getElementById('touchTrack').classList.toggle('on', touchOn);
+}
+
+/* ── Toast ── */
+let toastTimer;
+function kitToast(type, msg) {
+  // 모바일 프레임 토스트
+  const mt = document.getElementById('mobile-toast');
+  ['success','error','cancel','info'].forEach(t => {
+    document.getElementById('mti-' + t).classList.toggle('visible', t === type);
+  });
+  document.getElementById('mobile-toast-text').textContent = msg;
+  mt.classList.remove('show');
+  clearTimeout(toastTimer);
+  setTimeout(() => mt.classList.add('show'), 30);
+  toastTimer = setTimeout(() => mt.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
