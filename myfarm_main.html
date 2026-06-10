@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>my Farm+ 메인 v10</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --primary:#1F69FF;
+  --primary-bg:#F0F5FF;
+  --primary-dark:#1450CC;
+  --green:#00B26A;
+  --green-bg:rgba(0,178,106,0.08);
+  --red:#FF3B30;
+  --red-bg:rgba(255,59,48,0.08);
+  --amber:#D47B00;
+  --amber-bg:#FFF8EC;
+  --text-01:#1D1F20;
+  --text-02:#464A4E;
+  --text-03:#6D7379;
+  --text-hint:#A0A6AC;
+  --border:#E3E5E8;
+  --bg:#F6F7F8;
+  --white:#FFFFFF;
+  --r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:18px;
+}
+html,body{height:100%;font-family:'Pretendard',sans-serif;background:var(--bg);display:flex;align-items:center;justify-content:center;}
+.phone{width:390px;height:844px;background:var(--bg);border-radius:44px;box-shadow:0 0 0 10px #1a1a1a,0 0 0 12px #2a2a2a,0 32px 80px rgba(0,0,0,.5);overflow:hidden;position:relative;flex-shrink:0;}
+
+/* 상태바 */
+.sbar{
+  height:54px;background:var(--white);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px 0;
+}
+.sbar-time{font-size:15px;font-weight:600;color:var(--text-01);letter-spacing:-.5px;}
+.sbar-icons{display:flex;align-items:center;gap:6px;}
+
+/* 앱바 */
+.appbar{
+  height:56px;background:var(--white);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  border-bottom:1px solid var(--border);
+}
+.logo{font-size:22px;font-weight:800;color:var(--primary);letter-spacing:-.5px;}
+.logo em{color:var(--green);font-style:normal;}
+.notif-btn{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--bg);border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.notif-dot{position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid var(--white);}
+
+/* 탭바 */
+.tab-bar{
+  height:48px;background:var(--white);
+  display:flex;padding:0 24px;
+  border-bottom:1px solid var(--border);
+}
+.tab{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:4px;
+  font-size:13px;font-weight:600;color:var(--text-hint);
+  border-bottom:2px solid transparent;
+  cursor:pointer;transition:all .18s;letter-spacing:-.26px;
+}
+.tab.on{color:var(--text-01);border-bottom-color:var(--primary);}
+
+/* 바디 */
+.body{height:686px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:136px;}
+.body::-webkit-scrollbar{display:none;}
+
+/* ── 날씨 카드 ── */
+.weather-wrap{padding:14px 16px 0;}
+.weather-card{
+  background:var(--white);
+  border-radius:var(--r-xl);
+  border:1px solid var(--border);
+  overflow:hidden;
+}
+.wc-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 18px 0;cursor:pointer;
+}
+.wc-label-row{display:flex;align-items:center;gap:6px;}
+.wc-label{font-size:14px;font-weight:700;color:var(--text-01);letter-spacing:-.28px;}
+.wc-loc{font-size:12px;color:var(--text-hint);font-weight:400;}
+.wc-chevron{transition:transform .28s;}
+.wc-chevron.open{transform:rotate(180deg);}
+
+.wc-body{padding:10px 18px 14px;}
+.wc-main-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.wc-icon{font-size:38px;line-height:1;}
+.wc-temp-col{}
+.wc-temp{font-size:34px;font-weight:700;color:var(--text-01);line-height:1;letter-spacing:-.5px;}
+.wc-sky{font-size:13px;color:var(--text-03);margin-top:4px;font-weight:500;}
+.wc-minmax{margin-left:auto;text-align:right;}
+.wc-minmax-row{font-size:13px;color:var(--text-03);font-weight:500;line-height:1.8;}
+.wc-minmax-row .hi{font-size:17px;font-weight:700;color:var(--red);}
+.wc-minmax-row .lo{font-size:17px;font-weight:700;color:var(--primary);}
+
+/* 특보 */
+.wc-alert{
+  display:flex;align-items:center;gap:8px;
+  background:var(--red-bg);border-radius:var(--r-sm);
+  padding:8px 12px;margin-bottom:8px;
+}
+.wc-alert-badge{background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;white-space:nowrap;}
+.wc-alert-text{font-size:12px;color:var(--red);font-weight:600;letter-spacing:-.24px;}
+
+/* 작업 연계 넛지 */
+.wc-nudge{
+  background:var(--primary-bg);border-radius:var(--r-sm);
+  padding:9px 12px;
+  display:flex;gap:8px;align-items:flex-start;
+}
+.wc-nudge-ico{font-size:14px;flex-shrink:0;margin-top:1px;}
+.wc-nudge-text{font-size:12px;color:var(--primary);font-weight:600;line-height:1.55;letter-spacing:-.24px;}
+
+/* 날씨 상세 */
+.we-detail{border-top:1px solid var(--bg);}
+.we-stats{
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  padding:12px 18px;border-bottom:1px solid var(--bg);
+}
+.we-stat{text-align:center;}
+.we-stat-val{font-size:14px;font-weight:700;color:var(--text-01);margin-bottom:3px;}
+.we-stat-key{font-size:11px;color:var(--text-hint);font-weight:500;}
+
+.we-hourly{padding:12px 18px;border-bottom:1px solid var(--bg);}
+.we-sec-lbl{font-size:11px;font-weight:700;color:var(--text-hint);letter-spacing:.04em;text-transform:uppercase;margin-bottom:10px;}
+.we-hour-row{display:flex;gap:0;overflow-x:auto;}
+.we-hour-row::-webkit-scrollbar{display:none;}
+.we-hour{flex-shrink:0;width:46px;text-align:center;padding:0 2px;}
+.we-hour-t{font-size:10px;color:var(--text-hint);margin-bottom:5px;font-weight:500;}
+.we-hour-i{font-size:18px;margin-bottom:4px;}
+.we-hour-c{font-size:12px;font-weight:700;color:var(--text-01);}
+.we-hour-r{font-size:10px;color:var(--primary);margin-top:2px;font-weight:600;}
+.we-hour.now .we-hour-t{color:var(--primary);font-weight:700;}
+.we-hour.now .we-hour-c{color:var(--primary);}
+
+.we-weekly{padding:12px 18px;}
+.we-week-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--bg);}
+.we-week-row:last-child{border-bottom:none;}
+.we-week-day{font-size:13px;color:var(--text-03);width:32px;font-weight:500;}
+.we-week-day.today{color:var(--primary);font-weight:700;}
+.we-week-i{font-size:16px;}
+.we-week-mm{font-size:11px;color:var(--primary);width:32px;text-align:center;font-weight:600;}
+.we-week-temps{font-size:13px;color:var(--text-hint);font-weight:500;}
+.we-week-temps b{color:var(--text-01);font-weight:700;}
+
+/* ── 섹션 ── */
+.section{padding:16px 16px 0;}
+.sec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.sec-title{font-size:15px;font-weight:700;color:var(--text-01);letter-spacing:-.3px;}
+.sec-more{font-size:13px;color:var(--primary);font-weight:600;cursor:pointer;letter-spacing:-.26px;}
+
+/* ── 탭 배너 카드 ── */
+.tab-banner{
+  width:100%;border-radius:var(--r-xl);
+  padding:18px 20px;
+  display:flex;justify-content:space-between;align-items:center;
+  cursor:pointer;transition:transform .15s;
+  border:none;text-align:left;
+  margin-bottom:12px;
+}
+.tab-banner:active{transform:scale(.98);}
+.tab-banner.blue{background:#1F69FF;box-shadow:0 6px 20px rgba(31,105,255,.22);}
+.tab-banner.orange{background:#E8530A;box-shadow:0 6px 20px rgba(232,83,10,.22);}
+.tab-banner.green{background:#00B26A;box-shadow:0 6px 20px rgba(0,178,106,.22);}
+.tb-left{}
+.tb-sub{font-size:11px;font-weight:600;margin-bottom:5px;letter-spacing:-.22px;}
+.tab-banner.blue .tb-sub{color:rgba(255,255,255,.65);}
+.tab-banner.orange .tb-sub{color:rgba(255,255,255,.65);}
+.tab-banner.green .tb-sub{color:rgba(255,255,255,.65);}
+.tb-title{font-size:17px;font-weight:700;color:#fff;letter-spacing:-.34px;line-height:1.3;}
+.tb-cta{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.15);
+  backdrop-filter:blur(4px);
+  padding:8px 14px;border-radius:var(--r-md);
+  font-size:12px;font-weight:700;color:#fff;
+  white-space:nowrap;flex-shrink:0;
+  letter-spacing:-.24px;
+}
+
+/* ── 탭 스탯 바 ── */
+.tab-stats{
+  background:var(--white);
+  border-radius:var(--r-lg);
+  border:1px solid var(--border);
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  padding:14px 8px;
+  text-align:center;
+  margin-top:10px;
+}
+.tab-stat{padding:0 6px;}
+.tab-stat + .tab-stat{border-left:1px solid var(--bg);}
+.ts-key{font-size:11px;color:var(--text-hint);font-weight:500;margin-bottom:5px;letter-spacing:-.22px;}
+.ts-val{font-size:13px;font-weight:700;letter-spacing:-.26px;}
+.ts-val.red{color:var(--red);}
+.ts-val.normal{color:var(--text-01);}
+.ts-val.muted{color:var(--text-03);}
+.ts-val.amber{color:#D47B00;}
+
+/* ── 이슈 ── */
+.issue-card{
+  background:var(--amber-bg);border:1.5px solid #F0CC80;
+  border-radius:var(--r-lg);padding:13px 16px;
+  display:flex;gap:10px;align-items:flex-start;cursor:pointer;transition:transform .15s;
+}
+.issue-card:active{transform:scale(.98);}
+.issue-ico{font-size:18px;flex-shrink:0;}
+.issue-title{font-size:13px;font-weight:700;color:var(--text-01);margin-bottom:3px;letter-spacing:-.26px;}
+.issue-desc{font-size:12px;color:var(--text-03);line-height:1.5;letter-spacing:-.24px;}
+.issue-action{font-size:12px;font-weight:700;color:var(--amber);margin-top:5px;letter-spacing:-.24px;}
+
+/* ── 작업 카드 (신규 스타일) ── */
+.work-card{
+  background:var(--white);border-radius:var(--r-xl);
+  border:1px solid var(--border);padding:16px 18px;
+  margin-bottom:10px;cursor:pointer;transition:transform .15s;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+.work-card:active{transform:scale(.98);}
+.work-card:last-child{margin-bottom:0;}
+.wk-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.wk-top-left{display:flex;align-items:center;gap:8px;}
+.wk-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;letter-spacing:-.22px;}
+.bi{background:var(--primary-bg);color:var(--primary);}
+.bw{background:var(--bg);color:var(--text-hint);}
+.bd{background:var(--green-bg);color:var(--green);}
+.wk-top-right{display:flex;align-items:center;gap:10px;}
+.wk-date{font-size:11px;color:var(--text-hint);font-weight:500;}
+.wk-more{color:var(--text-hint);display:flex;align-items:center;}
+.wk-title-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;}
+.wk-title{font-size:16px;font-weight:700;color:var(--text-01);letter-spacing:-.32px;}
+.wk-assignee{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text-03);font-weight:500;}
+.wk-divider{height:1px;background:var(--bg);margin:12px 0;}
+.wk-stats{display:grid;grid-template-columns:1fr 1fr auto;align-items:center;gap:0;}
+.wk-stat{}
+.wk-stat-key{font-size:11px;color:var(--text-hint);font-weight:500;margin-bottom:4px;letter-spacing:-.22px;}
+.wk-stat-val{font-size:18px;font-weight:700;color:var(--primary);letter-spacing:-.36px;line-height:1;}
+.wk-stat-val.green{color:var(--green);}
+.wk-stat-sub{font-size:11px;color:var(--text-hint);margin-top:3px;font-weight:400;}
+/* 도넛 차트 */
+.donut-wrap{display:flex;align-items:center;justify-content:flex-end;}
+.donut{width:52px;height:52px;position:relative;}
+.donut svg{width:52px;height:52px;transform:rotate(-90deg);}
+.donut-bg{fill:none;stroke:var(--bg);stroke-width:5;}
+.donut-fill{fill:none;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .6s ease;}
+.donut-fill.blue{stroke:var(--primary);}
+.donut-fill.green{stroke:var(--green);}
+
+/* ── 구분선 ── */
+.divider{height:8px;background:var(--bg);margin:18px 0 0;}
+
+/* ── PB / 팀 하이라이트 ── */
+.pb-card{
+  background:var(--white);border-radius:var(--r-lg);
+  border:1px solid var(--border);overflow:hidden;margin-bottom:10px;
+  cursor:pointer;transition:transform .15s;
+}
+.pb-card:active{transform:scale(.98);}
+.pb-card:last-child{margin-bottom:0;}
+.pb-header{
+  padding:12px 16px;display:flex;align-items:center;gap:8px;
+  border-bottom:1px solid var(--bg);
+}
+.pb-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:4px;white-space:nowrap;letter-spacing:-.22px;}
+.pb-personal{background:#FFF3E0;color:#C47800;}
+.pb-team{background:var(--green-bg);color:var(--green);}
+.pb-header-text{font-size:13px;font-weight:700;color:var(--text-01);letter-spacing:-.26px;}
+.pb-body{padding:12px 16px 14px;}
+.pb-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bg);}
+.pb-row:last-child{border-bottom:none;}
+.pb-row-label{font-size:12px;color:var(--text-03);font-weight:500;letter-spacing:-.24px;}
+.pb-row-val{font-size:13px;font-weight:700;color:var(--text-01);display:flex;align-items:center;gap:6px;letter-spacing:-.26px;}
+.pb-delta{font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;white-space:nowrap;}
+.d-new{background:#FFF3E0;color:#C47800;}
+.d-up{background:var(--green-bg);color:var(--green);}
+
+.pb-team-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bg);}
+.pb-team-item:last-child{border-bottom:none;}
+.pb-rank{width:24px;height:24px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text-hint);flex-shrink:0;}
+.pb-rank.gold{background:#FFE04A;color:#7A5800;}
+.pb-avatar{width:30px;height:30px;border-radius:50%;background:var(--primary-bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--primary);flex-shrink:0;}
+.pb-name{font-size:13px;font-weight:700;color:var(--text-01);flex:1;letter-spacing:-.26px;}
+.pb-achieve{font-size:11px;color:var(--text-hint);text-align:right;line-height:1.4;font-weight:500;letter-spacing:-.22px;}
+
+/* ── 뉴스 ── */
+.news-card{
+  background:var(--white);border-radius:var(--r-lg);
+  border:1px solid var(--border);padding:13px 14px;
+  display:flex;gap:12px;align-items:center;
+  margin-bottom:8px;cursor:pointer;transition:transform .15s;
+}
+.news-card:active{transform:scale(.98);}
+.news-card:last-child{margin-bottom:0;}
+.news-thumb{width:54px;height:54px;border-radius:var(--r-md);background:var(--bg);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.news-title{font-size:13px;font-weight:600;color:var(--text-01);line-height:1.45;letter-spacing:-.26px;margin-bottom:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.news-meta{font-size:11px;color:var(--text-hint);font-weight:500;}
+
+/* ── 쇼츠 ── */
+.shorts-row{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;}
+.shorts-row::-webkit-scrollbar{display:none;}
+.shorts-item{flex-shrink:0;width:112px;border-radius:var(--r-lg);overflow:hidden;background:#1D1F20;cursor:pointer;transition:transform .15s;}
+.shorts-item:active{transform:scale(.96);}
+.shorts-thumb{height:154px;display:flex;align-items:center;justify-content:center;}
+.st1{background:linear-gradient(150deg,#1E4A70,#0E2A40);}
+.st2{background:linear-gradient(150deg,#1E5C30,#0E3018);}
+.st3{background:linear-gradient(150deg,#4A3210,#281A08);}
+.play-btn{width:38px;height:38px;background:rgba(255,255,255,.18);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;backdrop-filter:blur(3px);}
+.shorts-label{padding:8px;font-size:11px;color:rgba(255,255,255,.85);line-height:1.4;font-weight:500;}
+
+/* ── GNB ── */
+.gnb{
+  position:absolute;bottom:0;left:0;right:0;
+  height:86px;background:var(--white);
+  border-top:1px solid var(--border);
+  display:grid;grid-template-columns:1fr 1fr 1fr 1fr;
+  align-items:flex-start;padding-top:12px;
+  z-index:100;
+}
+.gnb-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
+.gnb-svg{stroke:var(--text-hint);}
+.gnb-svg.on{stroke:var(--text-01);}
+.gnb-lbl{font-size:11px;color:var(--text-hint);font-weight:600;letter-spacing:-.22px;}
+.gnb-lbl.on{color:var(--text-01);}
+.gnb-ico-wrap{position:relative;}
+.gnb-rdot{position:absolute;top:0;right:-2px;width:5px;height:5px;border-radius:50%;background:var(--red);border:1.5px solid var(--white);}
+
+@media (max-width:450px){
+  html,body{background:var(--white);align-items:flex-start;justify-content:flex-start;padding:0;}
+  .phone{width:100vw!important;height:100vh!important;height:100dvh!important;border-radius:0!important;box-shadow:none!important;border:none!important;}
+}
+
+/* ── 바텀시트 오버레이 ── */
+.bs-overlay{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.35);
+  z-index:200;
+  opacity:1;transition:opacity .3s;
+}
+.bs-overlay.hidden{opacity:0;pointer-events:none;}
+
+.bottomsheet{
+  position:absolute;
+  bottom:0;left:0;right:0;
+  background:var(--white);
+  border-radius:20px 20px 0 0;
+  border-top:1px solid var(--border);
+  z-index:201;
+  transform:translateY(0);
+  transition:transform .35s cubic-bezier(.32,.72,0,1);
+  padding-bottom:24px;
+}
+.bottomsheet.hidden{transform:translateY(100%);}
+
+.bs-handle{
+  width:36px;height:4px;
+  background:var(--border);border-radius:2px;
+  margin:10px auto 16px;
+}
+
+/* 슬라이드 */
+.bs-slides{overflow:hidden;}
+.bs-track{
+  display:flex;
+  transition:transform .3s ease;
+}
+.bs-slide{
+  min-width:100%;
+  padding:0 20px 4px;
+}
+
+.bs-emoji{font-size:32px;text-align:center;margin-bottom:10px;}
+.bs-title{
+  font-size:17px;font-weight:700;color:var(--text-01);
+  text-align:center;margin-bottom:6px;
+  line-height:1.4;letter-spacing:-.34px;
+}
+.bs-desc{
+  font-size:13px;color:var(--text-03);
+  text-align:center;line-height:1.6;
+  margin-bottom:16px;letter-spacing:-.26px;
+}
+
+/* 진행률 */
+.bs-progress{margin-bottom:14px;}
+.bs-prog-head{display:flex;justify-content:space-between;font-size:11px;font-weight:600;margin-bottom:6px;}
+.bs-prog-label{color:var(--text-03);}
+.bs-prog-count{color:var(--primary);}
+.bs-prog-bg{height:4px;background:var(--bg);border-radius:100px;overflow:hidden;}
+.bs-prog-fill{height:100%;background:var(--primary);border-radius:100px;}
+
+/* 체크 */
+.bs-checklist{margin-bottom:14px;}
+.bs-check-item{display:flex;align-items:center;gap:8px;padding:5px 0;}
+.bs-check-ico{
+  width:20px;height:20px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:11px;font-weight:700;
+}
+.bs-check-done{background:var(--green-bg);color:var(--green);}
+.bs-check-todo{background:var(--bg);border:1.5px solid var(--border);}
+.bs-check-text{font-size:13px;color:var(--text-01);font-weight:500;letter-spacing:-.26px;}
+.bs-check-text.done{color:var(--text-hint);text-decoration:line-through;}
+
+/* 날씨 배너 */
+.bs-weather{
+  background:var(--primary-bg);border-radius:12px;
+  padding:14px;display:flex;gap:10px;align-items:flex-start;
+  margin-bottom:16px;
+}
+.bs-weather-ico{font-size:24px;flex-shrink:0;}
+.bs-weather-title{font-size:14px;font-weight:700;color:var(--text-01);margin-bottom:3px;letter-spacing:-.28px;}
+.bs-weather-desc{font-size:12px;color:var(--text-03);line-height:1.5;letter-spacing:-.24px;}
+
+/* 도트 */
+.bs-dots{display:flex;justify-content:center;gap:5px;margin-bottom:16px;}
+.bs-dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:all .2s;cursor:pointer;}
+.bs-dot.on{background:var(--primary);width:16px;border-radius:3px;}
+
+/* 버튼 */
+.bs-btn-primary{
+  display:block;width:100%;padding:14px;
+  background:var(--primary);color:#fff;
+  font-size:14px;font-weight:700;
+  border-radius:12px;border:none;cursor:pointer;
+  text-align:center;letter-spacing:-.28px;
+  margin-bottom:8px;
+}
+.bs-btn-ghost{
+  display:block;width:100%;padding:12px;
+  background:transparent;color:var(--text-hint);
+  font-size:13px;font-weight:600;
+  border-radius:12px;border:1.5px solid var(--border);cursor:pointer;
+  text-align:center;letter-spacing:-.26px;
+}
+
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- 상태바 -->
+  <div class="sbar">
+    <span class="sbar-time">9:41</span>
+    <div class="sbar-icons">
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="#1D1F20"><rect x="0" y="4" width="3" height="8" rx="1" opacity=".3"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" opacity=".6"/><rect x="9" y="1" width="3" height="11" rx="1" opacity=".8"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 3C5.5 3 3.3 4.1 1.8 5.9L0 4.1C2 1.6 4.8 0 8 0s6 1.6 8 4.1L14.2 5.9C12.7 4.1 10.5 3 8 3z" fill="#1D1F20"/><path d="M8 6c-1.5 0-2.8.6-3.8 1.6L2.5 5.9C3.9 4.4 5.8 3.5 8 3.5s4.1.9 5.5 2.4L11.8 7.6C10.8 6.6 9.5 6 8 6z" fill="#1D1F20"/><circle cx="8" cy="10" r="2" fill="#1D1F20"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y="1" width="20" height="10" rx="3" stroke="#1D1F20" stroke-width="1" opacity=".35"/><rect x="21.5" y="4" width="3" height="4" rx="1" fill="#1D1F20" opacity=".4"/><rect x="2" y="2.5" width="15" height="7" rx="2" fill="#1D1F20"/></svg>
+    </div>
+  </div>
+
+  <!-- 앱바 -->
+  <div class="appbar">
+    <div class="logo">my Farm<em>+</em></div>
+    <button class="notif-btn" aria-label="알림">
+      <div class="notif-dot"></div>
+      <svg width="18" height="18" fill="none" stroke="#464A4E" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </button>
+  </div>
+
+  <!-- 탭바 : 일반농작업 / 방제 / 조사료 -->
+  <div class="tab-bar">
+    <div class="tab on" onclick="switchTab(this,'일반')">🚜 일반농작업</div>
+    <div class="tab" onclick="switchTab(this,'방제')">🌿 방제</div>
+    <div class="tab" onclick="switchTab(this,'조사료')">🌾 조사료</div>
+  </div>
+
+  <!-- 바디 -->
+  <div class="body" id="mainBody">
+
+    <!-- 날씨 카드 — 실제 라이브 톤 -->
+    <div class="weather-wrap">
+      <div class="weather-card">
+        <div class="wc-header" onclick="toggleWeather()">
+          <div class="wc-label-row">
+            <span class="wc-label">날씨 정보</span>
+            <span class="wc-loc">경기 화성시 장안면
+              <svg width="11" height="11" fill="none" stroke="#A0A6AC" stroke-width="1.8" viewBox="0 0 24 24" style="margin-left:2px;vertical-align:middle;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </span>
+          </div>
+          <svg class="wc-chevron" id="wChevron" width="16" height="16" fill="none" stroke="#A0A6AC" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="wc-body">
+          <div class="wc-main-row">
+            <div class="wc-icon">⛅</div>
+            <div class="wc-temp-col">
+              <div class="wc-temp">17°</div>
+              <div class="wc-sky">구름 많음</div>
+            </div>
+            <div class="wc-minmax">
+              <div class="wc-minmax-row">최저 <span class="lo">12°</span></div>
+              <div class="wc-minmax-row">최고 <span class="hi">20°</span></div>
+            </div>
+          </div>
+          <div class="wc-alert">
+            <span class="wc-alert-badge">특보</span>
+            <span class="wc-alert-text">호우주의보 발효 중 &nbsp;07.12.16:00 이후</span>
+          </div>
+          <div class="wc-nudge">
+            <span class="wc-nudge-ico">⚠️</span>
+            <span class="wc-nudge-text" id="wNudge">이번 주 예정 작업 3건 — 작업자 배정이 필요한 항목이 있어요</span>
+          </div>
+        </div>
+        <!-- 상세 펼치기 -->
+        <div class="we-detail" id="weatherDetail" style="display:none;">
+          <div class="we-stats">
+            <div class="we-stat"><div class="we-stat-val">90%</div><div class="we-stat-key">습도</div></div>
+            <div class="we-stat"><div class="we-stat-val">15.2m/s</div><div class="we-stat-key">풍속</div></div>
+            <div class="we-stat"><div class="we-stat-val">90%</div><div class="we-stat-key">강수확률</div></div>
+          </div>
+          <div class="we-hourly">
+            <div class="we-sec-lbl">시간별 예보</div>
+            <div class="we-hour-row">
+              <div class="we-hour now"><div class="we-hour-t">지금</div><div class="we-hour-i">⛅</div><div class="we-hour-c">17°</div><div class="we-hour-r">30%</div></div>
+              <div class="we-hour"><div class="we-hour-t">11시</div><div class="we-hour-i">⛅</div><div class="we-hour-c">18°</div><div class="we-hour-r">30%</div></div>
+              <div class="we-hour"><div class="we-hour-t">13시</div><div class="we-hour-i">🌦</div><div class="we-hour-c">17°</div><div class="we-hour-r">60%</div></div>
+              <div class="we-hour"><div class="we-hour-t">15시</div><div class="we-hour-i">🌧</div><div class="we-hour-c">16°</div><div class="we-hour-r">90%</div></div>
+              <div class="we-hour"><div class="we-hour-t">17시</div><div class="we-hour-i">🌧</div><div class="we-hour-c">15°</div><div class="we-hour-r">90%</div></div>
+              <div class="we-hour"><div class="we-hour-t">19시</div><div class="we-hour-i">🌦</div><div class="we-hour-c">14°</div><div class="we-hour-r">40%</div></div>
+              <div class="we-hour"><div class="we-hour-t">21시</div><div class="we-hour-i">🌙</div><div class="we-hour-c">13°</div><div class="we-hour-r">10%</div></div>
+            </div>
+          </div>
+          <div class="we-weekly">
+            <div class="we-sec-lbl">주간 예보</div>
+            <div class="we-week-row"><div class="we-week-day today">오늘</div><div class="we-week-i">🌦</div><div class="we-week-mm">30%</div><div class="we-week-temps"><b>20°</b> / 12°</div></div>
+            <div class="we-week-row"><div class="we-week-day">수</div><div class="we-week-i">☁️</div><div class="we-week-mm">20%</div><div class="we-week-temps"><b>19°</b> / 11°</div></div>
+            <div class="we-week-row"><div class="we-week-day">목</div><div class="we-week-i">☀️</div><div class="we-week-mm">0%</div><div class="we-week-temps"><b>22°</b> / 13°</div></div>
+            <div class="we-week-row"><div class="we-week-day">금</div><div class="we-week-i">⛅</div><div class="we-week-mm">10%</div><div class="we-week-temps"><b>21°</b> / 12°</div></div>
+            <div class="we-week-row"><div class="we-week-day">토</div><div class="we-week-i">☀️</div><div class="we-week-mm">0%</div><div class="we-week-temps"><b>24°</b> / 14°</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 탭 배너 카드 -->
+    <div class="section" id="tabBannerWrap">
+      <div id="tabBanner"></div>
+      <div id="tabStats"></div>
+    </div>
+
+    <!-- 이슈 (조건부 노출) -->
+    <div class="section" id="issueSection" style="display:none;">
+      <div class="sec-head"><span class="sec-title">확인이 필요해요</span></div>
+      <div id="issueContent"></div>
+    </div>
+
+    <!-- 작업 현황 -->
+    <div class="section" style="padding-top:60px;">
+      <div class="sec-head">
+        <span class="sec-title" id="workTitle">전체 작업 현황</span>
+        <span class="sec-more">전체 보기</span>
+      </div>
+      <div id="workCards">
+      <div class="work-card">
+        <div class="wk-top">
+          <div class="wk-top-left"><span class="wk-badge bi">진행 중</span></div>
+          <div class="wk-top-right">
+            <span class="wk-date">2026.06.08</span>
+            <span class="wk-more"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
+          </div>
+        </div>
+        <div class="wk-title-row">
+          <div class="wk-title">5단지 물 관리</div>
+          <div class="wk-assignee"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>작업자 2명</div>
+        </div>
+        <div class="wk-divider"></div>
+        <div class="wk-stats">
+          <div class="wk-stat">
+            <div class="wk-stat-key">등록면적</div>
+            <div class="wk-stat-val">10,000m²</div>
+            <div class="wk-stat-sub">(3,025평)</div>
+          </div>
+          <div class="wk-stat">
+            <div class="wk-stat-key">진행률</div>
+            <div class="wk-stat-val">80%</div>
+          </div>
+          <div class="donut-wrap">
+            <div class="donut">
+              <svg viewBox="0 0 52 52">
+                <circle class="donut-bg" cx="26" cy="26" r="20"/>
+                <circle class="donut-fill blue" cx="26" cy="26" r="20"
+                  stroke-dasharray="125.7"
+                  stroke-dashoffset="25.1"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="work-card">
+        <div class="wk-top">
+          <div class="wk-top-left"><span class="wk-badge bw">대기</span></div>
+          <div class="wk-top-right">
+            <span class="wk-date">2026.06.11</span>
+            <span class="wk-more"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
+          </div>
+        </div>
+        <div class="wk-title-row">
+          <div class="wk-title">4단지 비료 살포</div>
+          <div class="wk-assignee"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>미배정</div>
+        </div>
+        <div class="wk-divider"></div>
+        <div class="wk-stats">
+          <div class="wk-stat">
+            <div class="wk-stat-key">등록면적</div>
+            <div class="wk-stat-val">18,000m²</div>
+            <div class="wk-stat-sub">(5,445평)</div>
+          </div>
+          <div class="wk-stat">
+            <div class="wk-stat-key">진행률</div>
+            <div class="wk-stat-val">0%</div>
+          </div>
+          <div class="donut-wrap">
+            <div class="donut">
+              <svg viewBox="0 0 52 52">
+                <circle class="donut-bg" cx="26" cy="26" r="20"/>
+                <circle class="donut-fill blue" cx="26" cy="26" r="20"
+                  stroke-dasharray="125.7"
+                  stroke-dashoffset="125.7"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- PB / 팀 하이라이트 -->
+    <div class="section" style="margin-top:0;padding-top:60px;">
+      <div class="sec-head">
+        <span class="sec-title">🏆 이번 달 기록</span>
+        <span class="sec-more">전체 보기</span>
+      </div>
+      <div class="pb-card">
+        <div class="pb-header">
+          <span class="pb-badge pb-personal">나의 PB</span>
+          <span class="pb-header-text">세희님, 이번 달 새 기록이 나왔어요!</span>
+        </div>
+        <div class="pb-body">
+          <div class="pb-row">
+            <span class="pb-row-label">🚜 일일 최장 작업 거리</span>
+            <div class="pb-row-val">25km <span class="pb-delta d-new">🎉 신기록</span></div>
+          </div>
+          <div class="pb-row">
+            <span class="pb-row-label">⏱ 방제 최단 완료 시간</span>
+            <div class="pb-row-val">42분 <span class="pb-delta d-up">▲ 3분 단축</span></div>
+          </div>
+          <div class="pb-row">
+            <span class="pb-row-label">📋 영농일지 연속 작성</span>
+            <div class="pb-row-val">12일 <span class="pb-delta d-up">▲ 최고 기록</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="pb-card">
+        <div class="pb-header">
+          <span class="pb-badge pb-team">우리 법인</span>
+          <span class="pb-header-text">이번 달 팀 하이라이트</span>
+        </div>
+        <div class="pb-body">
+          <div class="pb-team-item">
+            <div class="pb-rank gold">1</div>
+            <div class="pb-avatar">김</div>
+            <div class="pb-name">김기사</div>
+            <div class="pb-achieve">방제 역대 최단시간<br>1만평 · 42분 완료</div>
+          </div>
+          <div class="pb-team-item">
+            <div class="pb-rank">2</div>
+            <div class="pb-avatar" style="background:var(--green-bg);color:var(--green);">박</div>
+            <div class="pb-name">박기사</div>
+            <div class="pb-achieve">이번달 영농일지<br>작성왕 · 18건</div>
+          </div>
+          <div class="pb-team-item">
+            <div class="pb-rank">3</div>
+            <div class="pb-avatar" style="background:#FFF3E0;color:var(--amber);">이</div>
+            <div class="pb-name">이기사</div>
+            <div class="pb-achieve">최고 효율 작업팀<br>A팀 · 달성률 98%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 뉴스 -->
+    <div class="section" style="margin-top:0;padding-top:60px;">
+      <div class="sec-head">
+        <span class="sec-title">농업 소식</span>
+        <span class="sec-more">더보기</span>
+      </div>
+      <div class="news-card">
+        <div class="news-thumb">🌾</div>
+        <div><div class="news-title">올해 병해충 발생 예년 대비 30% 증가 전망</div><div class="news-meta">농촌진흥청 · 2026.06.07</div></div>
+      </div>
+      <div class="news-card">
+        <div class="news-thumb">📋</div>
+        <div><div class="news-title">스마트팜 농업 보조금 신청 6월 말 마감</div><div class="news-meta">농림축산식품부 · 2026.06.05</div></div>
+      </div>
+    </div>
+
+    <!-- 쇼츠 -->
+    <div class="section" style="margin-top:0;padding-top:60px;">
+      <div class="sec-head">
+        <span class="sec-title">my Farm+ 스토리</span>
+        <span class="sec-more">더보기</span>
+      </div>
+    </div>
+    <div style="padding:0 16px 56px;">
+      <div class="shorts-row">
+        <div class="shorts-item"><div class="shorts-thumb st1"><div class="play-btn">▶</div></div><div class="shorts-label">방제 타이밍 언제가 좋을까</div></div>
+        <div class="shorts-item"><div class="shorts-thumb st2"><div class="play-btn">▶</div></div><div class="shorts-label">MT9 트랙터 실사용 후기</div></div>
+        <div class="shorts-item"><div class="shorts-thumb st3"><div class="play-btn">▶</div></div><div class="shorts-label">영농일지 쉽게 쓰는 법</div></div>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+
+
+  <!-- 바텀시트 오버레이 -->
+  <div class="bs-overlay" id="bsOverlay"></div>
+
+  <!-- 바텀시트 -->
+  <div class="bottomsheet" id="bottomsheet">
+    <div class="bs-handle"></div>
+
+    <!-- 슬라이드 트랙 -->
+    <div class="bs-slides" id="bsSlides">
+      <div class="bs-track" id="bsTrack">
+
+        <!-- 슬라이드 1: 가입 직후 -->
+        <div class="bs-slide">
+          <div class="bs-emoji">🌱</div>
+          <div class="bs-title">처음 오셨군요,<br>같이 시작해볼까요?</div>
+          <div class="bs-desc">필지를 등록하면<br>작업 관리를 시작할 수 있어요</div>
+          <button class="bs-btn-primary" onclick="dismissSheet()">🗺 내 필지 등록하기</button>
+          <button class="bs-btn-ghost" onclick="dismissSheet()">나중에 할게요</button>
+        </div>
+
+        <!-- 슬라이드 2: 필지만 등록 -->
+        <div class="bs-slide">
+          <div class="bs-emoji">👍</div>
+          <div class="bs-title">필지 등록 완료!</div>
+          <div class="bs-progress">
+            <div class="bs-prog-head">
+              <span class="bs-prog-label">시작 준비</span>
+              <span class="bs-prog-count">2 / 3</span>
+            </div>
+            <div class="bs-prog-bg"><div class="bs-prog-fill" style="width:66%"></div></div>
+          </div>
+          <div class="bs-checklist">
+            <div class="bs-check-item">
+              <div class="bs-check-ico bs-check-done">✓</div>
+              <span class="bs-check-text done">필지 등록</span>
+            </div>
+            <div class="bs-check-item">
+              <div class="bs-check-ico bs-check-todo"></div>
+              <span class="bs-check-text">첫 작업 등록하기</span>
+            </div>
+          </div>
+          <button class="bs-btn-primary" onclick="dismissSheet()">+ 첫 작업 등록하기</button>
+          <button class="bs-btn-ghost" onclick="dismissSheet()">나중에 할게요</button>
+        </div>
+
+        <!-- 슬라이드 3: 활성 사용자 날씨 알림 -->
+        <div class="bs-slide">
+          <div class="bs-weather">
+            <span class="bs-weather-ico">🌧</span>
+            <div>
+              <div class="bs-weather-title">오늘 오후 비 옵니다</div>
+              <div class="bs-weather-desc">진행 중인 방제 작업 일정을<br>확인해보세요</div>
+            </div>
+          </div>
+          <button class="bs-btn-primary" onclick="dismissSheet()">작업 일정 확인하기</button>
+          <button class="bs-btn-ghost" onclick="dismissSheet()">괜찮아요</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 도트 인디케이터 -->
+    <div class="bs-dots" id="bsDots">
+      <div class="bs-dot on" onclick="goSlide(0)"></div>
+      <div class="bs-dot" onclick="goSlide(1)"></div>
+      <div class="bs-dot" onclick="goSlide(2)"></div>
+    </div>
+
+  </div>
+
+  <!-- GNB -->
+  <div class="gnb">
+    <div class="gnb-item">
+      <div class="gnb-ico-wrap">
+        <svg class="gnb-svg on" width="22" height="22" fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <span class="gnb-lbl on">홈</span>
+    </div>
+    <div class="gnb-item">
+      <div class="gnb-ico-wrap">
+        <svg class="gnb-svg" width="22" height="22" fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <div class="gnb-rdot"></div>
+      </div>
+      <span class="gnb-lbl">작업 관리</span>
+    </div>
+    <div class="gnb-item">
+      <div class="gnb-ico-wrap">
+        <svg class="gnb-svg" width="22" height="22" fill="none" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+      </div>
+      <span class="gnb-lbl">지도</span>
+    </div>
+    <div class="gnb-item">
+      <div class="gnb-ico-wrap">
+        <svg class="gnb-svg" width="22" height="22" fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <span class="gnb-lbl">마이페이지</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const tabs = {
+  '일반':{
+    nudge:'이번 주 예정 작업 3건 — 작업자 배정이 필요한 항목이 있어요',
+    bannerColor:'blue',
+    bannerSub:'스마트 영농의 시작',
+    bannerTitle:'무슨 작업을 하실 건가요?',
+    bannerCta:'작업 등록 →',
+    stats:[
+      {key:'기사 배정', val:'미배정 1건', cls:'red'},
+      {key:'등록 내역', val:'3,000개 필지', cls:'normal'},
+      {key:'영농일지', val:'오늘 미작성', cls:'muted'},
+    ],
+    issue:null,
+    wt:'전체 작업 현황',
+    works:[
+      {b:'bi',l:'진행 중',d:'2026.06.08',t:'5단지 물 관리',area:'10,000m²',areaSub:'(3,025평)',assign:'작업자 2명',p:80},
+      {b:'bw',l:'대기',d:'2026.06.11',t:'4단지 비료 살포',area:'18,000m²',areaSub:'(5,445평)',assign:'미배정',p:0},
+    ]
+  },
+  '방제':{
+    nudge:'오후 2시 이후 비 예보 — 오늘 농약 살포는 오전 중 마무리하세요',
+    bannerColor:'orange',
+    bannerSub:'안전한 병해충 예방',
+    bannerTitle:'방제 작업을 등록할까요?',
+    bannerCta:'방제 등록 →',
+    stats:[
+      {key:'방제사 배정', val:'미배정 2건', cls:'red'},
+      {key:'장비 가동', val:'사용가능 3대', cls:'normal'},
+      {key:'방제일지', val:'오늘 미작성', cls:'muted'},
+    ],
+    issue:{
+      ico:'🔧',
+      title:'작업 전 장비 점검이 필요해요',
+      desc:'방제 드론 2호기 — 마지막 점검 이후 14일 경과',
+      action:'장비 점검 바로가기 →'
+    },
+    wt:'방제 작업 현황',
+    works:[
+      {b:'bi',l:'진행 중',d:'2026.06.08',t:'1단지 병해충 방제',area:'20,000m²',areaSub:'(6,050평)',assign:'작업자 3명',p:40},
+      {b:'bw',l:'대기',d:'2026.06.10',t:'3단지 제초제 살포',area:'15,000m²',areaSub:'(4,537평)',assign:'미배정',p:0},
+    ]
+  },
+  '조사료':{
+    nudge:'이번 주 목요일 맑음 예보 — 수확 적기입니다. 일정을 확인해보세요',
+    bannerColor:'green',
+    bannerSub:'풍요로운 결실과 수확',
+    bannerTitle:'조사료 작업을 등록할까요?',
+    bannerCta:'조사료 등록 →',
+    stats:[
+      {key:'수확량 기록', val:'오늘 미입력', cls:'amber'},
+      {key:'특수 장비', val:'사용가능 2대', cls:'normal'},
+      {key:'조사료 일지', val:'어제 미작성', cls:'red'},
+    ],
+    issue:null,
+    wt:'조사료 작업 현황',
+    works:[
+      {b:'bi',l:'진행 중',d:'2026.06.08',t:'2단지 티머시 수확',area:'30,000m²',areaSub:'(9,075평)',assign:'작업자 5명',p:65},
+      {b:'bd',l:'완료',d:'2026.06.06',t:'1단지 라이그라스 수확',area:'25,000m²',areaSub:'(7,562평)',assign:'작업자 4명',p:100},
+    ]
+  }
+};
+
+let weatherOpen = false;
+// 초기 배너 렌더링
+renderBanner(tabs['일반']);
+// 초기 이슈 없음
+document.getElementById('issueSection').style.display = 'none';
+
+function toggleWeather(){
+  weatherOpen = !weatherOpen;
+  document.getElementById('weatherDetail').style.display = weatherOpen ? 'block' : 'none';
+  document.getElementById('wChevron').classList.toggle('open', weatherOpen);
+  if(weatherOpen) document.getElementById('mainBody').scrollTop = 0;
+}
+
+function renderBanner(d){
+  document.getElementById('tabBanner').innerHTML = `
+    <button class="tab-banner ${d.bannerColor}">
+      <div class="tb-left">
+        <div class="tb-sub">${d.bannerSub}</div>
+        <div class="tb-title">${d.bannerTitle}</div>
+      </div>
+      <div class="tb-cta">${d.bannerCta}</div>
+    </button>`;
+  document.getElementById('tabStats').innerHTML = `
+    <div class="tab-stats">
+      ${d.stats.map(s=>`
+        <div class="tab-stat">
+          <div class="ts-key">${s.key}</div>
+          <div class="ts-val ${s.cls}">${s.val}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function switchTab(el, name){
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  const d = tabs[name];
+  document.getElementById('wNudge').textContent = d.nudge;
+  renderBanner(d);
+  // 이슈 조건부 노출
+  const issueSection = document.getElementById('issueSection');
+  const issueContent = document.getElementById('issueContent');
+  if(d.issue){
+    issueContent.innerHTML = `
+      <div class="issue-card">
+        <span class="issue-ico">${d.issue.ico}</span>
+        <div>
+          <div class="issue-title">${d.issue.title}</div>
+          <div class="issue-desc">${d.issue.desc}</div>
+          <div class="issue-action">${d.issue.action}</div>
+        </div>
+      </div>`;
+    issueSection.style.display = 'block';
+  } else {
+    issueSection.style.display = 'none';
+  }
+  document.getElementById('workTitle').textContent = d.wt;
+  document.getElementById('workCards').innerHTML = d.works.slice(0,2).map(w=>{
+    const r=20, circ=2*Math.PI*r, offset=circ-(w.p/100)*circ;
+    const colorClass = w.p===100?'green':'blue';
+    return `
+    <div class="work-card">
+      <div class="wk-top">
+        <div class="wk-top-left"><span class="wk-badge ${w.b}">${w.l}</span></div>
+        <div class="wk-top-right">
+          <span class="wk-date">${w.d}</span>
+          <span class="wk-more"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></span>
+        </div>
+      </div>
+      <div class="wk-title-row">
+        <div class="wk-title">${w.t}</div>
+        <div class="wk-assignee"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>${w.assign||'미배정'}</div>
+      </div>
+      <div class="wk-divider"></div>
+      <div class="wk-stats">
+        <div class="wk-stat">
+          <div class="wk-stat-key">등록면적</div>
+          <div class="wk-stat-val">${w.area}</div>
+          <div class="wk-stat-sub">${w.areaSub||''}</div>
+        </div>
+        <div class="wk-stat">
+          <div class="wk-stat-key">진행률</div>
+          <div class="wk-stat-val ${w.p===100?'green':''}">${w.p}%</div>
+        </div>
+        <div class="donut-wrap">
+          <div class="donut">
+            <svg viewBox="0 0 52 52">
+              <circle class="donut-bg" cx="26" cy="26" r="${r}"/>
+              <circle class="donut-fill ${colorClass}" cx="26" cy="26" r="${r}"
+                stroke-dasharray="${circ.toFixed(1)}"
+                stroke-dashoffset="${offset.toFixed(1)}"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>`}).join('');
+  document.getElementById('mainBody').scrollTop = 0;
+}
+
+// 바텀시트
+let currentSlide = 0;
+const totalSlides = 3;
+
+function updateSlide(){
+  document.getElementById('bsTrack').style.transform = `translateX(-${currentSlide * 100}%)`;
+  document.querySelectorAll('.bs-dot').forEach((d,i) => {
+    d.classList.toggle('on', i === currentSlide);
+  });
+}
+
+function goSlide(idx){
+  currentSlide = idx;
+  updateSlide();
+}
+
+function dismissSheet(){
+  document.getElementById('bottomsheet').classList.add('hidden');
+  document.getElementById('bsOverlay').classList.add('hidden');
+}
+
+// 오버레이 탭 닫기
+document.getElementById('bsOverlay').addEventListener('click', dismissSheet);
+
+// 터치 스와이프
+(function(){
+  const slides = document.getElementById('bsSlides');
+  let startX = 0, isDragging = false;
+
+  slides.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    isDragging = true;
+  }, {passive:true});
+
+  slides.addEventListener('touchend', e => {
+    if(!isDragging) return;
+    const diff = startX - e.changedTouches[0].clientX;
+    if(Math.abs(diff) > 40){
+      if(diff > 0 && currentSlide < totalSlides - 1){
+        currentSlide++;
+      } else if(diff < 0 && currentSlide > 0){
+        currentSlide--;
+      }
+      updateSlide();
+    }
+    isDragging = false;
+  }, {passive:true});
+})();
+
+
+
+// 모바일 GNB 스크롤 감지
+(function(){
+  const isMobile = () => window.innerWidth <= 450;
+  const gnb = document.querySelector('.gnb');
+  const body = document.getElementById('mainBody');
+  let lastY = 0;
+  let ticking = false;
+
+  body.addEventListener('scroll', () => {
+    if(!isMobile()) return;
+    if(ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const currentY = body.scrollTop;
+      if(currentY > lastY && currentY > 60){
+        // 아래로 스크롤 — GNB 숨김
+        gnb.classList.add('hide');
+      } else {
+        // 위로 스크롤 — GNB 노출
+        gnb.classList.remove('hide');
+      }
+      lastY = currentY;
+      ticking = false;
+    });
+  }, {passive:true});
+})();
+
+</script>
+</body>
+</html>
