@@ -1036,6 +1036,34 @@ document.getElementById('bsOverlay').addEventListener('click', dismissSheet);
 })();
 
 
+
+// 모바일 GNB 스크롤 감지
+(function(){
+  const isMobile = () => window.innerWidth <= 450;
+  const gnb = document.querySelector('.gnb');
+  const body = document.getElementById('mainBody');
+  let lastY = 0;
+  let ticking = false;
+
+  body.addEventListener('scroll', () => {
+    if(!isMobile()) return;
+    if(ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const currentY = body.scrollTop;
+      if(currentY > lastY && currentY > 60){
+        // 아래로 스크롤 — GNB 숨김
+        gnb.classList.add('hide');
+      } else {
+        // 위로 스크롤 — GNB 노출
+        gnb.classList.remove('hide');
+      }
+      lastY = currentY;
+      ticking = false;
+    });
+  }, {passive:true});
+})();
+
 </script>
 </body>
 </html>
