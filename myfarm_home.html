@@ -439,7 +439,7 @@ html,body{
 
 /* 도트 */
 .bs-dots{display:flex;justify-content:center;gap:5px;margin-bottom:16px;}
-.bs-dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:all .2s;}
+.bs-dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:all .2s;cursor:pointer;}
 .bs-dot.on{background:var(--primary);width:16px;border-radius:3px;}
 
 /* 버튼 */
@@ -749,7 +749,7 @@ html,body{
     <div class="bs-handle"></div>
 
     <!-- 슬라이드 트랙 -->
-    <div class="bs-slides">
+    <div class="bs-slides" id="bsSlides">
       <div class="bs-track" id="bsTrack">
 
         <!-- 슬라이드 1: 가입 직후 -->
@@ -758,7 +758,7 @@ html,body{
           <div class="bs-title">처음 오셨군요,<br>같이 시작해볼까요?</div>
           <div class="bs-desc">필지를 등록하면<br>작업 관리를 시작할 수 있어요</div>
           <button class="bs-btn-primary" onclick="dismissSheet()">🗺 내 필지 등록하기</button>
-          <button class="bs-btn-ghost" onclick="nextSlide()">다음 →</button>
+          <button class="bs-btn-ghost" onclick="dismissSheet()">나중에 할게요</button>
         </div>
 
         <!-- 슬라이드 2: 필지만 등록 -->
@@ -783,7 +783,7 @@ html,body{
             </div>
           </div>
           <button class="bs-btn-primary" onclick="dismissSheet()">+ 첫 작업 등록하기</button>
-          <button class="bs-btn-ghost" onclick="nextSlide()">다음 →</button>
+          <button class="bs-btn-ghost" onclick="dismissSheet()">나중에 할게요</button>
         </div>
 
         <!-- 슬라이드 3: 활성 사용자 날씨 알림 -->
@@ -804,9 +804,9 @@ html,body{
 
     <!-- 도트 인디케이터 -->
     <div class="bs-dots" id="bsDots">
-      <div class="bs-dot on"></div>
-      <div class="bs-dot"></div>
-      <div class="bs-dot"></div>
+      <div class="bs-dot on" onclick="goSlide(0)"></div>
+      <div class="bs-dot" onclick="goSlide(1)"></div>
+      <div class="bs-dot" onclick="goSlide(2)"></div>
     </div>
 
   </div>
@@ -1014,13 +1014,9 @@ function updateSlide(){
   });
 }
 
-function nextSlide(){
-  if(currentSlide < totalSlides - 1){
-    currentSlide++;
-    updateSlide();
-  } else {
-    dismissSheet();
-  }
+function goSlide(idx){
+  currentSlide = idx;
+  updateSlide();
 }
 
 function dismissSheet(){
@@ -1028,8 +1024,33 @@ function dismissSheet(){
   document.getElementById('bsOverlay').classList.add('hidden');
 }
 
-// 오버레이 탭해도 닫기
+// 오버레이 탭 닫기
 document.getElementById('bsOverlay').addEventListener('click', dismissSheet);
+
+// 터치 스와이프
+(function(){
+  const slides = document.getElementById('bsSlides');
+  let startX = 0, isDragging = false;
+
+  slides.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    isDragging = true;
+  }, {passive:true});
+
+  slides.addEventListener('touchend', e => {
+    if(!isDragging) return;
+    const diff = startX - e.changedTouches[0].clientX;
+    if(Math.abs(diff) > 40){
+      if(diff > 0 && currentSlide < totalSlides - 1){
+        currentSlide++;
+      } else if(diff < 0 && currentSlide > 0){
+        currentSlide--;
+      }
+      updateSlide();
+    }
+    isDragging = false;
+  }, {passive:true});
+})();
 
 </script>
 </body>
