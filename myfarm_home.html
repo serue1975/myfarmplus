@@ -26,21 +26,8 @@
   --white:#FFFFFF;
   --r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:18px;
 }
-html,body{
-  background:#111;min-height:100vh;
-  display:flex;justify-content:center;align-items:flex-start;
-  padding:32px 16px 48px;
-  font-family:'Pretendard',-apple-system,sans-serif;
-}
-.phone{
-  width:390px;
-  background:var(--bg);
-  border-radius:44px;
-  border:10px solid #1a1a1a;
-  overflow:hidden;
-  position:relative;
-  box-shadow:0 0 0 2px #2a2a2a,0 40px 80px rgba(0,0,0,.6);
-}
+html,body{height:100%;font-family:'Pretendard',sans-serif;background:var(--bg);display:flex;align-items:center;justify-content:center;}
+.phone{width:390px;height:844px;background:var(--bg);border-radius:44px;box-shadow:0 0 0 10px #1a1a1a,0 0 0 12px #2a2a2a,0 32px 80px rgba(0,0,0,.5);overflow:hidden;position:relative;flex-shrink:0;}
 
 /* 상태바 */
 .sbar{
@@ -83,11 +70,7 @@ html,body{
 .tab.on{color:var(--text-01);border-bottom-color:var(--primary);}
 
 /* 바디 */
-.body{
-  height:690px;overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-  padding-bottom:88px;
-}
+.body{height:686px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:136px;}
 .body::-webkit-scrollbar{display:none;}
 
 /* ── 날씨 카드 ── */
@@ -1051,6 +1034,7 @@ document.getElementById('bsOverlay').addEventListener('click', dismissSheet);
     isDragging = false;
   }, {passive:true});
 })();
+
 
 </script>
 </body>
