@@ -319,24 +319,27 @@ html,body{height:100%;font-family:'Pretendard',sans-serif;background:var(--bg);d
 /* ── GNB ── */
 .gnb{
   position:absolute;bottom:0;left:0;right:0;
-  height:86px;background:var(--white);
+  background:#fff;
   border-top:1px solid var(--border);
-  display:grid;grid-template-columns:1fr 1fr 1fr 1fr;
-  align-items:flex-start;padding-top:12px;
+  display:flex;align-items:stretch;
+  padding-top:7px;
+  padding-bottom:max(20px, calc(7px + env(safe-area-inset-bottom)));
   z-index:100;
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
 }
-.gnb-item{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
-.gnb-svg{stroke:var(--text-hint);}
-.gnb-svg.on{stroke:var(--text-01);}
-.gnb-lbl{font-size:11px;color:var(--text-hint);font-weight:600;letter-spacing:-.22px;}
-.gnb-lbl.on{color:var(--text-01);}
+.gnb.hide{transform:translateY(100%);}
+.gnb-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:#A0A6AC;border:none;background:none;padding:0;}
+.gnb-item.on{color:#1D1F20;}
+.gnb-item svg{width:28px;height:28px;}
+.gnb-lbl{font-size:12px;font-weight:400;letter-spacing:-.24px;line-height:1.3;color:inherit;}
+.gnb-item.on .gnb-lbl{font-weight:600;}
 .gnb-ico-wrap{position:relative;}
-.gnb-rdot{position:absolute;top:0;right:-2px;width:5px;height:5px;border-radius:50%;background:var(--red);border:1.5px solid var(--white);}
+.gnb-rdot{position:absolute;top:2px;right:8px;width:6px;height:6px;border-radius:50%;background:var(--red);border:1.5px solid var(--white);}
 
 .is-mobile .sbar{display:none!important;}
 .is-mobile .phone{width:100vw!important;height:100dvh!important;border-radius:0!important;box-shadow:none!important;}
 .is-mobile .body{height:calc(100dvh - 104px)!important;}
-.is-mobile .gnb{position:fixed!important;bottom:0!important;left:0!important;right:0!important;width:100%!important;transition:transform .3s cubic-bezier(.4,0,.2,1)!important;}
+.is-mobile .gnb{position:fixed!important;bottom:0!important;left:0!important;right:0!important;width:100%!important;}
 .is-mobile .gnb.hide{transform:translateY(100%)!important;}
 .is-mobile .bottomsheet{position:fixed!important;bottom:0!important;left:0!important;right:0!important;width:100%!important;}
 .is-mobile .bs-overlay{position:fixed!important;top:0!important;}
@@ -798,32 +801,24 @@ html,body{height:100%;font-family:'Pretendard',sans-serif;background:var(--bg);d
   </div>
 
   <!-- GNB -->
-  <div class="gnb">
-    <div class="gnb-item">
-      <div class="gnb-ico-wrap">
-        <svg class="gnb-svg on" width="22" height="22" fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      </div>
-      <span class="gnb-lbl on">홈</span>
-    </div>
-    <div class="gnb-item">
-      <div class="gnb-ico-wrap">
-        <svg class="gnb-svg" width="22" height="22" fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        <div class="gnb-rdot"></div>
-      </div>
+  <div class="gnb" id="gnb">
+    <button class="gnb-item on">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M12.8136 3.87419L3.8136 10.5058C3.302 10.8827 3 11.4804 3 12.1159V23C3 24.1046 3.89543 25 5 25H11C12.1046 25 13 24.1046 13 23V17C13 16.4477 13.4477 16 14 16C14.5523 16 15 16.4477 15 17V23C15 24.1046 15.8954 25 17 25H23C24.1046 25 25 24.1046 25 23V12.1159C25 11.4804 24.698 10.8827 24.1864 10.5058L15.1864 3.87419C14.4809 3.35434 13.5191 3.35434 12.8136 3.87419Z" fill="#1D1F20"/></svg>
+      <span class="gnb-lbl">홈</span>
+    </button>
+    <button class="gnb-item" style="position:relative;">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M6 3H19.1351H22C23.1046 3 24 3.89543 24 5V23C24 24.1046 23.1046 25 22 25H6C4.89543 25 4 24.1046 4 23V5C4 3.89543 4.89543 3 6 3Z" fill="#A0A6AC"/><path d="M8.5 10.5L19.5 10.5" stroke="white" stroke-width="2" stroke-linecap="round"/><path d="M8.5 15.333H15.5" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+      <div class="gnb-rdot"></div>
       <span class="gnb-lbl">작업 관리</span>
-    </div>
-    <div class="gnb-item">
-      <div class="gnb-ico-wrap">
-        <svg class="gnb-svg" width="22" height="22" fill="none" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-      </div>
-      <span class="gnb-lbl">지도</span>
-    </div>
-    <div class="gnb-item">
-      <div class="gnb-ico-wrap">
-        <svg class="gnb-svg" width="22" height="22" fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      </div>
+    </button>
+    <button class="gnb-item">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M21.9701 13.6816C22.3216 13.3307 22.8922 13.3304 23.2435 13.6816L25.5658 16.0039C25.9171 16.3552 25.9167 16.9258 25.5658 17.2773L17.5189 25.3232C17.3578 25.4843 17.1411 25.579 16.9135 25.5869L14.5082 25.6689C14.2591 25.6774 14.0175 25.5824 13.8412 25.4062C13.6651 25.23 13.57 24.9882 13.5785 24.7393L13.6605 22.334C13.6685 22.1064 13.7632 21.8896 13.9242 21.7285L21.9701 13.6816ZM15.4486 22.75L15.4095 23.8369L16.4984 23.7998L21.3441 18.9531L20.2943 17.9043L15.4486 22.75ZM12.8334 16.2998C13.496 16.3 14.0336 16.8374 14.0336 17.5C14.0336 18.1626 13.496 18.7 12.8334 18.7002H3.50037C2.83762 18.7002 2.30017 18.1627 2.30017 17.5C2.30017 16.8373 2.83762 16.2998 3.50037 16.2998H12.8334ZM21.5677 16.6309L22.6176 17.6797L23.6556 16.6416L22.6068 15.5918L21.5677 16.6309ZM17.5004 9.88281C18.1628 9.88299 18.7004 10.4205 18.7006 11.083C18.7006 11.7456 18.163 12.283 17.5004 12.2832H3.50037C2.83762 12.2832 2.30017 11.7457 2.30017 11.083C2.30035 10.4204 2.83773 9.88281 3.50037 9.88281H17.5004ZM21.1302 3.4668C21.7928 3.46704 22.3304 4.0044 22.3304 4.66699C22.3303 5.32943 21.7927 5.86694 21.1302 5.86719H3.50037C2.83773 5.86719 2.30035 5.32958 2.30017 4.66699C2.30017 4.00425 2.83762 3.4668 3.50037 3.4668H21.1302Z" fill="#A0A6AC"/></svg>
+      <span class="gnb-lbl">영농일지</span>
+    </button>
+    <button class="gnb-item">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14.0001" cy="8.4" r="5.4" fill="#A0A6AC"/><path d="M3.5 20.5C3.5 17.7386 5.73858 15.5 8.5 15.5H19.5C22.2614 15.5 24.5 17.7386 24.5 20.5V23.6C24.5 24.3732 23.8732 25 23.1 25H4.9C4.1268 25 3.5 24.3732 3.5 23.6V20.5Z" fill="#A0A6AC"/></svg>
       <span class="gnb-lbl">마이페이지</span>
-    </div>
+    </button>
   </div>
 
 </div>
@@ -1058,7 +1053,7 @@ document.getElementById('bsOverlay').addEventListener('click', dismissSheet);
 // 모바일 GNB 스크롤 감지
 (function(){
   const isMobile = () => document.documentElement.classList.contains('is-mobile');
-  const gnb = document.querySelector('.gnb');
+  const gnb = document.getElementById('gnb');
   const body = document.getElementById('mainBody');
   let lastY = 0;
   let ticking = false;
