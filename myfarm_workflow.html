@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마이팜플러스 - 작업등록 플로우</title>
+<style>
+  :root{
+    --primary:#1F69FF;
+    --primary-08:#3A7CFF;
+    --primary-10:#004FEE;
+    --primary-bg:#EEF3FF;
+    --green:#00B862;
+    --text-01:#1D1F20;
+    --text-13:#383B3E;
+    --text-02:#4A4F54;
+    --text-hint:#888F95;
+    --text-muted:#A0A6AC;
+    --border:#EBEDEF;
+    --border-05:#E3E5E8;
+    --bg:#F6F7F8;
+    --white:#FFFFFF;
+    --red:#FF1919;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;
+    background:#E2E4E8;
+    min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+    padding:48px 20px;
+  }
+  .phone{
+    width:390px;height:844px;
+    border-radius:50px;
+    box-shadow:0 0 0 10px #1a1a1a,0 0 0 12px #333,0 40px 80px rgba(0,0,0,.5);
+    overflow:hidden;
+    position:relative;
+    background:var(--white);
+  }
+
+  /* ── 공통 화면 ── */
+  .screen{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;
+    background:var(--white);
+    transition:opacity .25s ease, transform .25s ease;
+  }
+  .screen.hidden{opacity:0;pointer-events:none;transform:translateX(20px);}
+  .screen.exit{opacity:0;transform:translateX(-20px);pointer-events:none;}
+
+  /* 상태바 */
+  .status-bar{
+    height:52px;padding:14px 28px 0;
+    display:flex;justify-content:space-between;align-items:center;
+    flex-shrink:0;
+  }
+  .status-time{font-size:15px;font-weight:700;color:var(--text-01);}
+  .status-icons{display:flex;gap:6px;align-items:center;}
+
+  /* 앱바 */
+  .appbar{
+    height:52px;padding:0 20px 0 8px;
+    display:flex;align-items:center;justify-content:space-between;
+    flex-shrink:0;border-bottom:1px solid var(--border);
+  }
+  .appbar-left{display:flex;align-items:center;gap:4px;}
+  .appbar-title{font-size:17px;font-weight:700;color:var(--text-01);letter-spacing:-.34px;}
+  .btn-back{
+    width:40px;height:44px;background:none;border:none;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .btn-icon{
+    width:32px;height:32px;background:none;border:none;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  /* 스크롤 영역 */
+  .scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;}
+  .scroll-area::-webkit-scrollbar{display:none;}
+
+  /* 바텀 */
+  .bottom{
+    padding:12px 20px 40px;
+    border-top:1px solid var(--border);
+    background:var(--white);flex-shrink:0;
+  }
+  .btn-primary{
+    width:100%;height:56px;
+    background:var(--primary);color:#fff;
+    border:none;border-radius:12px;
+    font-size:16px;font-weight:700;font-family:inherit;
+    letter-spacing:-.32px;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .btn-primary:disabled{background:var(--border-05);color:var(--white);}
+  .btn-primary.gray{background:var(--border-05);color:var(--white);}
+
+  /* ══ STEP 1: 그룹명 입력 ══ */
+  #s1 .content{padding:8px 20px 32px;}
+  .page-title{font-size:22px;font-weight:800;color:var(--text-01);margin-bottom:28px;}
+  .field-label{font-size:13px;font-weight:600;color:var(--text-02);margin-bottom:8px;}
+  .input-wrap{position:relative;margin-bottom:28px;}
+  .input{
+    width:100%;height:52px;border:1.5px solid var(--border);
+    border-radius:10px;padding:0 44px 0 16px;
+    font-size:16px;font-family:inherit;color:var(--text-01);
+    background:var(--white);outline:none;transition:border-color .15s;
+  }
+  .input:focus,.input.active{border-color:var(--primary);}
+  .input-clear{
+    position:absolute;right:14px;top:50%;transform:translateY(-50%);
+    width:20px;height:20px;border-radius:50%;
+    background:#C7CBCF;border:none;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .divider{height:1px;background:var(--border);margin-bottom:24px;}
+  .mode-label{font-size:13px;font-weight:600;color:var(--text-02);margin-bottom:14px;}
+  .radio-group{display:flex;flex-direction:column;gap:14px;margin-bottom:20px;}
+  .radio-item{display:flex;align-items:center;gap:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .radio-circle{
+    width:22px;height:22px;border-radius:50%;border:2px solid var(--border);
+    flex-shrink:0;position:relative;transition:border-color .15s;
+  }
+  .radio-circle.checked{border-color:var(--primary);}
+  .radio-circle.checked::after{
+    content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:11px;height:11px;border-radius:50%;background:var(--primary);
+  }
+  .radio-title{font-size:15px;font-weight:600;color:var(--text-01);}
+  .radio-item.unchecked .radio-title{font-weight:500;color:var(--text-02);}
+  .mode-desc{background:var(--bg);border-radius:10px;padding:4px 0;overflow:hidden;}
+  .mode-desc-item{display:flex;gap:10px;align-items:flex-start;padding:14px 16px;transition:background .15s;}
+  .mode-desc-item.active{background:var(--primary-bg);}
+  .mode-desc-item+.mode-desc-item{border-top:1px solid var(--border);}
+  .mode-badge{font-size:11px;font-weight:700;border-radius:4px;padding:2px 7px;white-space:nowrap;flex-shrink:0;margin-top:1px;}
+  .mode-badge.blue{color:var(--primary);background:#CBDCFF;}
+  .mode-badge.gray{color:var(--text-hint);background:var(--border-05);}
+  .mode-desc-text{font-size:12.5px;color:var(--text-hint);line-height:1.55;}
+
+  /* ══ STEP 2: 필지그룹 선택 ══ */
+  #s2 .scroll-area{padding:20px 20px 0;}
+  .search-box{
+    background:#F9FAFB;border:1px solid var(--border-05);
+    border-radius:6px;height:44px;
+    display:flex;align-items:center;padding:0 10px 0 14px;gap:8px;
+    margin-bottom:16px;
+  }
+  .search-input{
+    flex:1;border:none;background:none;outline:none;
+    font-size:16px;font-weight:500;color:var(--text-13);
+    font-family:inherit;letter-spacing:-.32px;
+  }
+  .search-input::placeholder{color:var(--text-muted);}
+  .sort-wrap{display:flex;align-items:center;gap:8px;margin-bottom:20px;}
+  .sort-item{display:flex;align-items:center;gap:4px;cursor:pointer;}
+  .sort-text{font-size:13px;font-weight:600;color:var(--text-01);letter-spacing:-.26px;}
+  .sort-text.inactive{font-weight:500;color:var(--text-hint);}
+  .sort-divider{width:1px;height:14px;background:var(--border-05);}
+  .list-count{display:flex;align-items:center;gap:4px;padding:4px 0 12px;font-size:14px;}
+  .count-label{font-weight:500;color:var(--text-muted);}
+  .count-num{font-weight:600;color:var(--primary);}
+  .group-list{display:flex;flex-direction:column;gap:8px;padding-bottom:24px;}
+  .group-item{
+    background:var(--white);border:1.5px solid var(--border);
+    border-radius:6px;padding:16px;cursor:pointer;
+    transition:border-color .15s,background .15s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .group-item.selected{border-color:var(--primary);background:var(--primary-bg);}
+  .group-name{font-size:18px;font-weight:700;color:var(--text-13);letter-spacing:-.36px;}
+  .group-item.selected .group-name{color:var(--primary);}
+  .group-addr{font-size:14px;font-weight:500;color:var(--text-hint);margin-top:6px;}
+  .btn-confirm{
+    width:100%;height:56px;border:none;border-radius:6px;
+    font-size:18px;font-weight:700;font-family:inherit;
+    letter-spacing:-.36px;cursor:pointer;transition:background .15s;
+  }
+  .btn-confirm.disabled{background:var(--border-05);color:var(--white);}
+  .btn-confirm.active{background:var(--primary);color:var(--white);}
+
+  /* ══ STEP 3: 지도 ══ */
+  #s3{background:#3d6b22;}
+  .map-bg{
+    position:absolute;inset:0;
+    background-color:#3d6b22;
+    background-image:linear-gradient(rgba(0,0,0,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.04) 1px,transparent 1px);
+    background-size:40px 40px;
+  }
+  .field{position:absolute;border-radius:3px;opacity:.85;}
+  .f1{width:120px;height:80px;background:#4a7c28;top:160px;left:20px;}
+  .f2{width:90px;height:110px;background:#5a8f32;top:240px;left:160px;transform:rotate(5deg);}
+  .f3{width:140px;height:70px;background:#3d6b1e;top:360px;left:60px;transform:rotate(-3deg);}
+  .f4{width:80px;height:90px;background:#618a35;top:220px;left:270px;}
+  .f5{width:110px;height:60px;background:#4f7d2a;top:470px;left:180px;}
+  .f6{width:160px;height:55px;background:#3a6319;top:550px;left:30px;}
+  .road{position:absolute;background:#8a7355;opacity:.6;}
+  .r1{width:4px;height:100%;left:145px;top:0;}
+  .r2{width:100%;height:4px;top:440px;}
+  #s3 .status-bar{background:var(--white);position:relative;z-index:20;flex-shrink:0;}
+  #s3 .status-bar .status-time{color:var(--text-01);}
+  .topsheet{
+    background:var(--white);
+    box-shadow:0 1px 4px rgba(0,0,0,.2);
+    z-index:15;position:relative;flex-shrink:0;
+  }
+  .sheet-header{display:flex;align-items:center;justify-content:space-between;padding:8px 4px 0;}
+  .sheet-left{display:flex;align-items:center;}
+  .group-name-topsheet{font-size:20px;font-weight:700;color:var(--text-01);letter-spacing:-.2px;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .progress-badge{display:flex;align-items:baseline;background:var(--primary-bg);border-radius:6px;padding:4px 6px;margin-left:6px;}
+  .progress-val{font-size:16px;font-weight:700;color:var(--primary);}
+  .progress-unit{font-size:12px;font-weight:700;color:var(--primary);}
+  .sheet-right{display:flex;align-items:center;}
+  .register-btn-wrap{padding:0 20px 10px;}
+  .btn-map-register{
+    width:100%;height:48px;background:var(--primary-08);
+    border:none;border-radius:6px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:4px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .btn-map-register span{font-size:18px;font-weight:700;color:#fff;font-family:inherit;letter-spacing:-.36px;}
+  .handle-bar-wrap{display:flex;align-items:center;justify-content:center;padding:4px 0 8px;}
+  .handle-bar{width:36px;height:4px;background:#D1D5DB;border-radius:2px;}
+  .map-area{flex:1;position:relative;}
+  .map-controls-left{position:absolute;left:12px;bottom:32px;display:flex;flex-direction:column;gap:12px;z-index:10;}
+  .map-controls-right{position:absolute;right:12px;bottom:32px;display:flex;flex-direction:column;gap:12px;z-index:10;}
+  .map-btn{
+    width:42px;height:42px;background:var(--white);border:none;border-radius:50%;
+    box-shadow:0 1px 4px rgba(0,0,0,.25);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .map-btn-group{display:flex;flex-direction:column;background:var(--white);border-radius:100px;box-shadow:0 1px 3px rgba(0,0,0,.2);overflow:hidden;}
+  .map-btn-group .map-btn{border-radius:0;box-shadow:none;border-bottom:1px solid var(--border);}
+  .map-btn-group .map-btn:last-child{border-bottom:none;}
+  .map-label{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.85);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:500;color:#444;white-space:nowrap;z-index:5;}
+
+  /* ══ STEP 4: 작업 등록 ══ */
+  #s4 .scroll-area{padding:24px 20px 0;}
+  .btn-template{
+    background:var(--white);border:1.5px solid var(--primary-08);
+    border-radius:100px;padding:7px 14px;
+    font-size:14px;font-weight:600;color:var(--primary);
+    font-family:inherit;cursor:pointer;white-space:nowrap;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .input-row{display:flex;align-items:flex-end;gap:8px;margin-bottom:24px;}
+  .color-btn{position:relative;width:44px;height:44px;flex-shrink:0;cursor:pointer;}
+  .color-swatch{width:36px;height:36px;border-radius:6px;position:absolute;bottom:0;left:0;}
+  .color-edit{
+    position:absolute;bottom:12px;left:20px;
+    width:24px;height:24px;border-radius:50%;
+    background:rgba(0,0,0,.6);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .input-field{flex:1;min-width:0;}
+  .input-label-sm{font-size:13px;font-weight:400;color:var(--text-02);letter-spacing:-.2px;margin-bottom:4px;}
+  .input-line{display:flex;align-items:center;border-bottom:1.5px solid var(--primary-10);height:40px;gap:12px;}
+  .input-work{flex:1;border:none;outline:none;font-size:20px;font-weight:400;color:#000;font-family:inherit;letter-spacing:-.2px;background:none;min-width:0;}
+  .btn-add{background:none;border:none;cursor:pointer;font-size:16px;font-weight:600;color:var(--primary-08);font-family:inherit;white-space:nowrap;padding:0;}
+  .work-list{display:flex;flex-direction:column;}
+  .work-item{display:flex;align-items:center;gap:16px;padding:8px 0;}
+  .work-item-left{display:flex;align-items:center;gap:8px;flex:1;min-width:0;}
+  .work-name{font-size:18px;font-weight:700;color:var(--text-13);letter-spacing:-.36px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;}
+  .work-btns{display:flex;align-items:center;flex-shrink:0;}
+  .btn-sm{width:32px;height:32px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
+  #s4 .btn-primary{border-radius:6px;font-size:18px;}
+
+  /* ══ 코치마크 ══ */
+  .coach-overlay{
+    position:absolute;inset:0;z-index:100;
+    pointer-events:none;
+  }
+  .coach-overlay.active{pointer-events:all;}
+  .coach-dim{
+    position:absolute;inset:0;
+    background:transparent;
+    transition:background .3s;
+  }
+  .coach-overlay.active.has-dim .coach-dim{background:rgba(0,0,0,.65);}
+  .coach-overlay.active.no-dim .coach-dim{background:transparent;}
+
+  /* 스포트라이트 (구멍) */
+  .spotlight{
+    position:absolute;
+    border-radius:12px;
+    box-shadow:
+      0 0 0 9999px rgba(0,0,0,.7),
+      0 0 0 3px rgba(255,255,255,.95),
+      0 0 0 6px rgba(255,255,255,.2);
+    z-index:101;
+    transition:all .3s;
+    background:transparent;
+  }
+
+  /* 말풍선 */
+  .coach-bubble{
+    position:absolute;
+    background:var(--white);
+    border-radius:12px;
+    padding:14px 16px;
+    width:240px;
+    box-shadow:0 8px 24px rgba(0,0,0,.18);
+    z-index:102;
+    opacity:0;transform:scale(.92);
+    transition:opacity .25s, transform .25s;
+  }
+  .coach-overlay.active .coach-bubble{opacity:1;transform:scale(1);}
+  .coach-bubble::before{
+    content:'';position:absolute;
+    width:0;height:0;
+    border:8px solid transparent;
+  }
+  .bubble-top::before{border-bottom-color:var(--white);top:-16px;left:20px;}
+  .bubble-bottom::before{border-top-color:var(--white);bottom:-16px;left:20px;}
+  .bubble-left::before{border-right-color:var(--white);left:-16px;top:16px;}
+  .coach-bubble-title{font-size:14px;font-weight:700;color:var(--text-01);margin-bottom:4px;}
+  .coach-bubble-desc{font-size:13px;font-weight:400;color:var(--text-02);line-height:1.55;}
+  .coach-bubble-btn{
+    margin-top:10px;width:100%;height:36px;
+    background:var(--primary);color:#fff;
+    border:none;border-radius:8px;
+    font-size:13px;font-weight:700;font-family:inherit;
+    cursor:pointer;pointer-events:all;
+  }
+
+  /* 코치 스텝 인디케이터 */
+  .coach-step{
+    position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
+    display:flex;gap:6px;z-index:102;
+  }
+  .coach-dot{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.4);}
+  .coach-dot.active{width:20px;background:var(--white);}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- ══ S1: 작업그룹명 입력 ══ -->
+  <div class="screen" id="s1">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="#1D1F20"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1" opacity=".3"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="#1D1F20" stroke-width="1.5"><path d="M1 3.5C3.5 1 12.5 1 15 3.5M3.5 6C5.5 4 10.5 4 12.5 6M6 8.5C7 7.5 9 7.5 10 8.5"/><circle cx="8" cy="11" r="1" fill="#1D1F20" stroke="none"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#1D1F20" stroke-opacity=".35"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#1D1F20"/><path d="M23 4.5v3a1.5 1.5 0 000-3z" fill="#1D1F20" fill-opacity=".4"/></svg>
+      </div>
+    </div>
+    <div style="padding:4px 12px 0;flex-shrink:0;">
+      <button class="btn-back"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1D1F20" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg></button>
+    </div>
+    <div class="scroll-area">
+      <div class="content">
+        <div class="page-title" style="margin-top:12px;margin-bottom:28px">작업 그룹명을 입력해주세요.</div>
+        <div class="field-label">작업 그룹명</div>
+        <div class="input-wrap">
+          <input class="input active" id="s1Input" type="text" value="2026 논 작업 그룹">
+          <button class="input-clear" onclick="document.getElementById('s1Input').value=''">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#fff" stroke-width="2"><path d="M1 1l8 8M9 1L1 9"/></svg>
+          </button>
+        </div>
+        <div class="divider"></div>
+        <div class="mode-label">운영 방식</div>
+        <div class="radio-group">
+          <label class="radio-item" onclick="selectMode('auto')">
+            <div class="radio-circle checked" id="r-auto"></div>
+            <span class="radio-title" id="rt-auto">자율모드</span>
+          </label>
+          <label class="radio-item unchecked" id="ri-manual" onclick="selectMode('manual')">
+            <div class="radio-circle" id="r-manual"></div>
+            <span class="radio-title" id="rt-manual">관리모드</span>
+          </label>
+        </div>
+        <div class="mode-desc">
+          <div class="mode-desc-item active" id="md-auto">
+            <span class="mode-badge blue" id="mb-auto">자율</span>
+            <span class="mode-desc-text">작업자가 현장에서 필요한 작업을 직접 선택합니다. 숙련자 중심의 유연한 운영에 적합해요.</span>
+          </div>
+          <div class="mode-desc-item" id="md-manual">
+            <span class="mode-badge gray" id="mb-manual">관리</span>
+            <span class="mode-desc-text">관리자가 필지별 작업자와 작업 내용을 직접 지정합니다. 외부 인력 투입이나 정밀 관리에 적합해요.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom">
+      <button class="btn-primary" onclick="go('s1','s2')">등록하기</button>
+    </div>
+  </div>
+
+  <!-- ══ S2: 필지그룹 선택 ══ -->
+  <div class="screen hidden" id="s2">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="#1D1F20"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1" opacity=".3"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="#1D1F20" stroke-width="1.5"><path d="M1 3.5C3.5 1 12.5 1 15 3.5M3.5 6C5.5 4 10.5 4 12.5 6M6 8.5C7 7.5 9 7.5 10 8.5"/><circle cx="8" cy="11" r="1" fill="#1D1F20" stroke="none"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#1D1F20" stroke-opacity=".35"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#1D1F20"/><path d="M23 4.5v3a1.5 1.5 0 000-3z" fill="#1D1F20" fill-opacity=".4"/></svg>
+      </div>
+    </div>
+    <div class="appbar">
+      <button class="btn-icon" onclick="showS2CloseToast()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1D1F20" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <span class="appbar-title">필지 그룹 선택</span>
+      <div style="width:32px"></div>
+    </div>
+    <div class="scroll-area" style="padding:20px 20px 0">
+      <div class="search-box">
+        <input class="search-input" type="text" placeholder="필지 그룹명을 검색하세요.">
+        <button class="btn-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A0A6AC" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg></button>
+      </div>
+      <div class="sort-wrap">
+        <div class="sort-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1F69FF" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+          <span class="sort-text">최신순</span>
+        </div>
+        <div class="sort-divider"></div>
+        <div class="sort-item"><span class="sort-text inactive">변경일순</span></div>
+      </div>
+      <div class="list-count"><span class="count-label">전체</span><span class="count-num" style="margin-left:4px">4</span></div>
+      <div class="group-list">
+        <div class="group-item" onclick="selectGroup(this)"><div class="group-name">필지그룹 A</div><div class="group-addr">경기도 용인시 수지구 신수로 767 외 90곳</div></div>
+        <div class="group-item" onclick="selectGroup(this)"><div class="group-name">필지그룹 123</div><div class="group-addr">경기도 용인시 수지구 신수로 767 외 90곳</div></div>
+        <div class="group-item" onclick="selectGroup(this)"><div class="group-name">벼농사 작업그룹</div><div class="group-addr">경기도 용인시 수지구 신수로 767 외 90곳</div></div>
+        <div class="group-item" onclick="selectGroup(this)"><div class="group-name">벼농사 작업그룹 123</div><div class="group-addr">경기도 용인시 수지구 신수로 767 외 90곳</div></div>
+      </div>
+    </div>
+    <div class="bottom">
+      <button class="btn-confirm disabled" id="s2Confirm" onclick="go('s2','s4')">확인</button>
+    </div>
+  </div>
+
+  <!-- ══ S3: 지도 ══ -->
+  <div class="screen hidden" id="s3">
+    <div class="map-bg">
+      <div class="field f1"></div><div class="field f2"></div>
+      <div class="field f3"></div><div class="field f4"></div>
+      <div class="field f5"></div><div class="field f6"></div>
+      <div class="road r1"></div><div class="road r2"></div>
+    </div>
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="#1D1F20"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1" opacity=".3"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="#1D1F20" stroke-width="1.5"><path d="M1 3.5C3.5 1 12.5 1 15 3.5M3.5 6C5.5 4 10.5 4 12.5 6M6 8.5C7 7.5 9 7.5 10 8.5"/><circle cx="8" cy="11" r="1" fill="#1D1F20" stroke="none"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#1D1F20" stroke-opacity=".35"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#1D1F20"/><path d="M23 4.5v3a1.5 1.5 0 000-3z" fill="#1D1F20" fill-opacity=".4"/></svg>
+      </div>
+    </div>
+    <div class="topsheet">
+      <div class="sheet-header">
+        <div class="sheet-left">
+          <button class="btn-back" onclick="go('s3','s2')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1D1F20" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg></button>
+          <span class="group-name-topsheet">2026 논 작업 그룹</span>
+          <div class="progress-badge"><span class="progress-val">0</span><span class="progress-unit">%</span></div>
+        </div>
+        <div class="sheet-right">
+          <button class="btn-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1D1F20" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></button>
+          <button class="btn-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1D1F20" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></button>
+          <button class="btn-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1D1F20" stroke-width="1.8"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg></button>
+        </div>
+      </div>
+      <div class="register-btn-wrap">
+        <button class="btn-map-register" onclick="go('s3','s4')">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+          <span>작업 등록</span>
+        </button>
+      </div>
+      <div class="handle-bar-wrap"><div class="handle-bar"></div></div>
+    </div>
+    <div class="map-area">
+      <div class="map-label">농촌저수지</div>
+      <div class="map-controls-left" id="mapControlsLeft">
+        <div class="map-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg></div>
+        <div class="map-btn-group" id="parcelBtnGroup">
+          <button class="map-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.8"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg></button>
+          <button class="map-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></button>
+          <button class="map-btn" id="parcelBtn" onclick="showCoach('s3','coach2')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.8"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="map-controls-right">
+        <div class="map-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M20 8l2 2 2-2"/></svg></div>
+        <div class="map-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></div>
+      </div>
+    </div>
+
+    <!-- 코치마크 레이어 s3 -->
+    <div class="coach-overlay" id="s3-coach">
+      <div class="coach-dim" onclick="dismissCoach('s3')"></div>
+      <!-- 스포트라이트 & 말풍선은 JS로 -->
+    </div>
+  </div>
+
+  <!-- ══ S4: 작업 등록 ══ -->
+  <div class="screen hidden" id="s4">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="#1D1F20"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1" opacity=".3"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="#1D1F20" stroke-width="1.5"><path d="M1 3.5C3.5 1 12.5 1 15 3.5M3.5 6C5.5 4 10.5 4 12.5 6M6 8.5C7 7.5 9 7.5 10 8.5"/><circle cx="8" cy="11" r="1" fill="#1D1F20" stroke="none"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="#1D1F20" stroke-opacity=".35"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#1D1F20"/><path d="M23 4.5v3a1.5 1.5 0 000-3z" fill="#1D1F20" fill-opacity=".4"/></svg>
+      </div>
+    </div>
+    <div class="appbar">
+      <div class="appbar-left">
+        <button class="btn-back" onclick="go('s4','s3')"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1D1F20" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <span class="appbar-title">작업 등록</span>
+      </div>
+      <button class="btn-template">템플릿 선택</button>
+    </div>
+    <div class="scroll-area">
+      <div class="input-row">
+        <div class="color-btn" id="s4ColorBtn" onclick="cycleColor()">
+          <div class="color-swatch" id="s4Swatch" style="background:#A300FF"></div>
+          <div class="color-edit"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+        </div>
+        <div class="input-field">
+          <div class="input-label-sm">작업명 입력</div>
+          <div class="input-line">
+            <input class="input-work" id="s4Input" type="text" placeholder="작업명을 입력하세요">
+            <button class="btn-add" onclick="addWork()">추가</button>
+          </div>
+        </div>
+      </div>
+      <div class="work-list" id="s4WorkList"></div>
+    </div>
+    <div class="bottom">
+      <button class="btn-primary" id="s4Btn" style="border-radius:6px;font-size:18px;" disabled>작업 등록하기</button>
+    </div>
+
+    <!-- 코치마크 레이어 s4 -->
+    <div class="coach-overlay" id="s4-coach">
+      <div class="coach-dim" onclick="dismissCoach('s4')"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 토스트 -->
+<div id="toast" style="position:fixed;bottom:110px;left:50%;transform:translateX(-50%);background:rgba(29,31,32,.9);color:#fff;font-size:13px;font-weight:500;line-height:1.5;padding:12px 18px;border-radius:8px;max-width:320px;text-align:center;z-index:9999;font-family:'Pretendard',sans-serif;display:none;"></div>
+
+<script>
+// ── 화면 전환 ──
+function go(from, to) {
+  const f = document.getElementById(from);
+  const t = document.getElementById(to);
+  f.classList.add('exit');
+  setTimeout(() => { f.classList.add('hidden'); f.classList.remove('exit'); }, 250);
+  t.classList.remove('hidden');
+  // 지도 진입 시 코치마크
+  if (to === 's3') setTimeout(() => showCoach('s3','coach1'), 600);
+  // 작업등록 진입 시 코치마크
+  if (to === 's4') setTimeout(() => showCoach('s4','coach3'), 500);
+}
+
+// ── S1 모드 선택 ──
+let currentMode = 'auto';
+function selectMode(mode) {
+  currentMode = mode;
+  document.getElementById('r-auto').classList.toggle('checked', mode==='auto');
+  document.getElementById('r-manual').classList.toggle('checked', mode==='manual');
+  document.querySelector('#s1 .radio-group .radio-item:first-child').classList.toggle('unchecked', mode!=='auto');
+  document.getElementById('ri-manual').classList.toggle('unchecked', mode!=='manual');
+  document.getElementById('md-auto').classList.toggle('active', mode==='auto');
+  document.getElementById('md-manual').classList.toggle('active', mode==='manual');
+  document.getElementById('mb-auto').className = 'mode-badge ' + (mode==='auto' ? 'blue' : 'gray');
+  document.getElementById('mb-manual').className = 'mode-badge ' + (mode==='manual' ? 'blue' : 'gray');
+}
+
+// ── S2 필지 선택 ──
+let s2Selected = null;
+function selectGroup(el) {
+  if (s2Selected === el) {
+    el.classList.remove('selected'); s2Selected = null;
+    document.getElementById('s2Confirm').className = 'btn-confirm disabled';
+    return;
+  }
+  document.querySelectorAll('#s2 .group-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected'); s2Selected = el;
+  document.getElementById('s2Confirm').className = 'btn-confirm active';
+}
+
+function showS2CloseToast() {
+  showToast('작업 그룹이 등록됐어요. 필지는 나중에 추가할 수 있어요.');
+  setTimeout(() => go('s2','s3'), 400);
+}
+
+// ── S4 작업 등록 ──
+const palette = ['#A300FF','#FF2A66','#01CFD7','#FFB10A','#1F69FF','#00B862'];
+const defaultWorks = [
+  { name:'로터리', color:'#A300FF' },
+  { name:'써레질', color:'#FF2A66' },
+  { name:'이앙 (모내기)', color:'#01CFD7' },
+  { name:'방제', color:'#FFB10A' },
+];
+let works = [...defaultWorks];
+let colorIdx = 0;
+
+function renderWorks() {
+  const list = document.getElementById('s4WorkList');
+  list.innerHTML = '';
+  works.forEach((w, i) => {
+    const el = document.createElement('div');
+    el.className = 'work-item';
+    el.innerHTML = `
+      <div class="work-item-left">
+        <div class="color-btn" style="pointer-events:none;">
+          <div class="color-swatch" style="background:${w.color}"></div>
+          <div class="color-edit"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+        </div>
+        <span class="work-name">${w.name}</span>
+      </div>
+      <div class="work-btns">
+        <button class="btn-sm" onclick="editWork(${i})"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#888F95" stroke-width="1.8"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="btn-sm" onclick="removeWork(${i})"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF1919" stroke-width="1.8"><path d="M3 6h18M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg></button>
+      </div>
+    `;
+    list.appendChild(el);
+  });
+  const btn = document.getElementById('s4Btn');
+  btn.textContent = works.length > 0 ? `${works.length}개 작업 등록하기` : '작업 등록하기';
+  btn.disabled = works.length === 0;
+  btn.style.background = works.length > 0 ? 'var(--primary)' : '';
+}
+
+function addWork() {
+  const v = document.getElementById('s4Input').value.trim();
+  if (!v) return;
+  works.push({ name:v, color:palette[colorIdx % palette.length] });
+  document.getElementById('s4Input').value = '';
+  colorIdx++;
+  document.getElementById('s4Swatch').style.background = palette[colorIdx % palette.length];
+  renderWorks();
+}
+function removeWork(i) { works.splice(i,1); renderWorks(); }
+function editWork(i) {
+  document.getElementById('s4Input').value = works[i].name;
+  document.getElementById('s4Swatch').style.background = works[i].color;
+  works.splice(i,1); renderWorks();
+  document.getElementById('s4Input').focus();
+}
+function cycleColor() {
+  colorIdx = (colorIdx+1) % palette.length;
+  document.getElementById('s4Swatch').style.background = palette[colorIdx];
+}
+document.getElementById('s4Input').addEventListener('keydown', e => { if(e.key==='Enter') addWork(); });
+
+// ── 코치마크 ──
+const coaches = {
+  's3': [
+    {
+      id:'coach1',
+      spotStyle: null, // 스포트라이트 없음 - 지도 전체 안내
+      bubble: {
+        style: { top:'220px', left:'50%', transform:'translateX(-50%)', width:'260px' },
+        cls: 'bubble-top',
+        title: '📍 지도를 터치해서 필지 선택',
+        desc: '지도 위 논·밭을 직접 터치하면 필지로 선택할 수 있어요. 선택한 필지에서 작업을 진행하면 돼요.',
+      },
+      next: 'coach2'
+    },
+    {
+      id:'coach2',
+      spotStyle: { top:'762px', left:'8px', width:'48px', height:'48px', borderRadius:'50%' },
+      bubble: {
+        style: { top:'630px', left:'64px', width:'230px' },
+        cls: 'bubble-bottom',
+        title: '📂 필지 불러오기',
+        desc: '등록해둔 필지그룹이 있다면 이 버튼으로 바로 불러올 수 있어요.',
+      },
+      next: null
+    }
+  ],
+  's4': [
+    {
+      id:'coach3',
+      spotStyle: { top:'145px', left:'14px', width:'52px', height:'52px', borderRadius:'10px' },
+      bubble: {
+        style: { top:'209px', left:'14px', width:'252px' },
+        cls: 'bubble-top',
+        title: '🎨 컬러 = 지도 공정 신호',
+        desc: '여기서 고른 색이 지도에서 해당 공정의 필지 색깔이 돼요. 예: 로터리(보라) 완료 필지를 써레질 작업자가 찾아가는 구조예요.',
+      },
+      next: null
+    }
+  ]
+};
+
+let activeCoach = {};
+
+function showCoach(screen, coachId) {
+  const overlay = document.getElementById(screen + '-coach');
+  const coachList = coaches[screen];
+  const coach = coachList.find(c => c.id === coachId);
+  if (!coach) return;
+
+  overlay.querySelectorAll('.spotlight,.coach-bubble,.coach-step').forEach(e => e.remove());
+
+  // 스포트라이트 유무에 따라 딤 처리 분기
+  if (coach.spotStyle) {
+    overlay.classList.remove('has-dim');
+    overlay.classList.add('no-dim');
+    const spot = document.createElement('div');
+    spot.className = 'spotlight';
+    Object.assign(spot.style, coach.spotStyle);
+    overlay.appendChild(spot);
+  } else {
+    overlay.classList.remove('no-dim');
+    overlay.classList.add('has-dim');
+  }
+
+  // 말풍선
+  const bubble = document.createElement('div');
+  bubble.className = `coach-bubble ${coach.bubble.cls}`;
+  const { transform, ...bubblePos } = coach.bubble.style;
+  Object.assign(bubble.style, bubblePos);
+  if (transform) bubble.style.transform = (bubble.style.transform || '') + ' ' + transform;
+  bubble.innerHTML = `
+    <div class="coach-bubble-title">${coach.bubble.title}</div>
+    <div class="coach-bubble-desc">${coach.bubble.desc}</div>
+    <button class="coach-bubble-btn" onclick="nextCoach('${screen}','${coachId}')">${coach.next ? '다음 →' : '확인'}</button>
+  `;
+  overlay.appendChild(bubble);
+
+  // 스텝 인디케이터
+  if (coachList.length > 1) {
+    const stepEl = document.createElement('div');
+    stepEl.className = 'coach-step';
+    coachList.forEach(c => {
+      const d = document.createElement('div');
+      d.className = 'coach-dot' + (c.id === coachId ? ' active' : '');
+      stepEl.appendChild(d);
+    });
+    overlay.appendChild(stepEl);
+  }
+
+  overlay.classList.add('active');
+  activeCoach[screen] = coachId;
+}
+
+function nextCoach(screen, currentId) {
+  const coachList = coaches[screen];
+  const coach = coachList.find(c => c.id === currentId);
+  if (coach && coach.next) {
+    showCoach(screen, coach.next);
+  } else {
+    dismissCoach(screen);
+  }
+}
+
+function dismissCoach(screen) {
+  const overlay = document.getElementById(screen + '-coach');
+  overlay.classList.remove('active');
+  setTimeout(() => overlay.querySelectorAll('.spotlight,.coach-bubble,.coach-step').forEach(e => e.remove()), 300);
+}
+
+// ── 토스트 ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block'; t.style.opacity = '1';
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.style.display='none', 300); }, 2800);
+}
+
+// 초기화
+renderWorks();
+</script>
+</body>
+</html>
