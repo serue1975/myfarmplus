@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>MO_장비관리_장비상세_탭구조</title>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body { font-family: 'Pretendard', -apple-system, sans-serif; background:#e5e5e5; display:flex; justify-content:center; padding:24px 0; }
+  .device { width:360px; background:#fff; border-radius:0; overflow:hidden; }
+  .statusbar { height:44px; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:15px; color:#000; }
+  .appbar { display:flex; align-items:center; height:56px; padding:0 20px 0 16px; }
+  .appbar .back { width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:20px; color:#1d1f20; }
+
+  .headerbg { background:#f1f2f4; padding-bottom:16px; }
+  .title-wrap { display:flex; flex-direction:column; align-items:center; gap:8px; padding:0 20px 20px; }
+  .flag { background:#e3e5e8; color:#6d7379; font-size:12px; font-weight:700; padding:2px 6px; border-radius:6px; }
+  .title-row { display:flex; align-items:center; gap:4px; }
+  .title-row h1 { font-size:22px; font-weight:700; color:#1d1f20; letter-spacing:-0.02em; }
+  .title-row .edit { font-size:16px; color:#a0a6ac; }
+  .sub-row { display:flex; align-items:center; gap:6px; font-size:14px; color:#464a4e; }
+  .sub-row .divider { width:1px; height:12px; background:#d0d4d7; }
+
+  .photo-wrap { display:flex; justify-content:center; padding-bottom:24px; }
+  .photo { width:240px; height:142px; border-radius:6px; background:#dfe2e5; display:flex; align-items:center; justify-content:center; position:relative; color:#9aa1a6; font-size:13px; }
+  .cam-btn { position:absolute; right:8px; bottom:8px; width:38px; height:38px; border-radius:100px; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; color:#fff; font-size:16px; }
+
+  .alert-banner { display:flex; align-items:center; gap:8px; margin:0 20px 24px; background:#fff; border:0.5px solid #e3e5e8; border-radius:8px; padding:14px 16px; }
+  .alert-dot { width:8px; height:8px; border-radius:50%; background:#ff1919; flex-shrink:0; }
+  .alert-text { font-size:14px; color:#383b3e; }
+  .alert-text b { color:#ff1919; font-weight:700; }
+
+  .consumable-row { display:flex; gap:6px; padding:0 20px 24px; overflow-x:auto; }
+  .consumable-card { background:#fff; border-radius:8px; padding:16px; min-width:132px; flex-shrink:0; }
+  .consumable-card .name { font-size:16px; font-weight:700; color:#1d1f20; }
+  .consumable-card .status { font-size:12px; font-weight:600; display:flex; align-items:center; gap:4px; margin-top:2px; }
+  .consumable-card .dot { width:4px; height:4px; border-radius:50%; }
+  .consumable-card .pct { font-size:13px; font-weight:500; color:#888f95; margin-top:4px; }
+  .status-danger { color:#ff1919; } .dot-danger { background:#ff1919; }
+  .status-warn { color:#ff971f; } .dot-warn { background:#ff971f; }
+  .status-ok { color:#00b862; } .dot-ok { background:#00b862; }
+
+  .tabs { display:flex; border-bottom:0.5px solid #e3e5e8; }
+  .tab { flex:1; text-align:center; padding:14px 0; font-size:14px; font-weight:500; color:#888f95; cursor:pointer; border-bottom:2px solid transparent; }
+  .tab.active { color:#1d1f20; font-weight:700; border-bottom-color:#1d1f20; }
+
+  .panel { display:none; }
+  .panel.active { display:block; }
+
+  .section { padding:28px 20px 16px; }
+  .section-title-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .section-title { font-size:16px; font-weight:700; color:#1d1f20; }
+  .link-add { font-size:13px; font-weight:600; color:#1f69ff; display:flex; align-items:center; gap:2px; }
+
+  .divider-thick { height:8px; background:#f6f7f8; }
+
+  .cta-btn { width:100%; background:#1f69ff; color:#fff; border:none; border-radius:8px; padding:14px; font-size:15px; font-weight:700; margin-bottom:20px; }
+
+  .consumable-manage-item { display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:0.5px solid #f1f2f4; }
+  .consumable-manage-item:last-child { border-bottom:none; }
+  .cmi-name { font-size:15px; font-weight:700; color:#1d1f20; }
+  .cmi-status { font-size:12px; font-weight:600; margin-top:2px; }
+  .cmi-btn { font-size:13px; font-weight:600; color:#1f69ff; border:0.5px solid #1f69ff; border-radius:6px; padding:6px 12px; background:#fff; }
+
+  .info-row { display:flex; align-items:center; justify-content:space-between; padding:20px 0; border-bottom:0.5px solid #f1f2f4; }
+  .info-row:last-child { border-bottom:none; }
+  .info-label { font-size:13px; color:#6d7379; }
+  .info-value { font-size:14px; color:#383b3e; }
+  .btn-edit { background:#fff; border:1px solid #d0d4d7; border-radius:4px; padding:4px 10px; font-size:13px; font-weight:600; color:#464a4e; }
+
+  .summary-box { background:#f6f7f8; border-radius:8px; padding:16px; display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; cursor:pointer; }
+  .summary-box .val { font-size:18px; font-weight:700; color:#383b3e; }
+  .summary-box .chev { color:#a0a6ac; font-size:14px; }
+
+  .history-item { padding:16px 0; border-bottom:0.5px solid #f1f2f4; }
+  .history-item:last-child { border-bottom:none; }
+  .history-meta { display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#a0a6ac; margin-bottom:8px; }
+  .history-meta .divider { width:1px; height:10px; background:#d0d4d7; }
+  .history-name { font-size:16px; font-weight:700; color:#383b3e; margin-bottom:8px; }
+  .history-detail { display:flex; align-items:center; justify-content:space-between; }
+  .history-detail-left { font-size:13px; font-weight:600; color:#6d7379; }
+  .history-detail-left .val { color:#1f69ff; }
+  .history-link { font-size:13px; font-weight:600; color:#a0a6ac; }
+</style>
+</head>
+<body>
+
+<div class="device">
+  <div class="headerbg">
+    <div class="statusbar">9:41</div>
+    <div class="appbar"><span class="back">&#8592;</span></div>
+
+    <div class="title-wrap">
+      <span class="flag">트랙터</span>
+      <div>
+        <div class="title-row"><h1>김회장네 트랙터</h1><span class="edit">&#9998;</span></div>
+        <div class="sub-row"><span>LS엠트론</span><span class="divider"></span><span>MT9.140-DCT</span></div>
+      </div>
+    </div>
+
+    <div class="photo-wrap">
+      <div class="photo">트랙터 이미지<div class="cam-btn">&#128247;</div></div>
+    </div>
+
+    <div class="alert-banner">
+      <span class="alert-dot"></span>
+      <span class="alert-text"><b>엔진오일</b>, <b>블로바이 필터</b> 교체가 필요해요</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="manage">관리</div>
+    <div class="tab" data-tab="history">이력</div>
+    <div class="tab" data-tab="info">정보</div>
+  </div>
+
+  <div class="panel active" id="panel-manage">
+    <div class="section">
+      <button class="cta-btn">&#128337; 운행시간 입력</button>
+      <div class="section-title" style="margin-bottom:8px;">소모품 상태</div>
+      <div class="consumable-manage-item">
+        <div>
+          <div class="cmi-name">엔진오일</div>
+          <div class="cmi-status status-danger">1% 남음 · 교체필요</div>
+        </div>
+        <button class="cmi-btn">교체 등록</button>
+      </div>
+      <div class="consumable-manage-item">
+        <div>
+          <div class="cmi-name">블로바이 필터</div>
+          <div class="cmi-status status-danger">4% 남음 · 교체필요</div>
+        </div>
+        <button class="cmi-btn">교체 등록</button>
+      </div>
+      <div class="consumable-manage-item">
+        <div>
+          <div class="cmi-name">엔진 냉각수</div>
+          <div class="cmi-status status-warn">19% 남음 · 교체임박</div>
+        </div>
+        <button class="cmi-btn">교체 등록</button>
+      </div>
+      <div class="consumable-manage-item">
+        <div>
+          <div class="cmi-name">연료 필터</div>
+          <div class="cmi-status" style="color:#888f95;">80% 남음</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-info">
+    <div class="section">
+      <div class="section-title-row">
+        <div class="section-title">장비 정보</div>
+        <button class="btn-edit">수정</button>
+      </div>
+      <div class="info-row"><span class="info-label">연식</span><span class="info-value">2025년</span></div>
+      <div class="info-row"><span class="info-label">초기 누적 운행 시간</span><span class="info-value">162.3</span></div>
+      <div class="info-row"><span class="info-label">마력</span><span class="info-value">345</span></div>
+      <div class="info-row"><span class="info-label">기대번호</span><span class="info-value">A1B2C3D456789</span></div>
+      <div class="info-row"><span class="info-label">구매 일자</span><span class="info-value">2026.06.12</span></div>
+      <div class="info-row"><span class="info-label">구매처</span><span class="info-value">LS엠트론 분당대리점</span></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-history">
+    <div class="section">
+      <div class="section-title-row">
+        <div class="section-title">누적 운행시간</div>
+        <span class="link-add">등록하기 +</span>
+      </div>
+      <div class="summary-box"><span class="val">190.2시간</span><span class="chev">&#8250;</span></div>
+    </div>
+    <div class="divider-thick"></div>
+    <div class="section">
+      <div class="section-title-row">
+        <div class="section-title">정비 이력</div>
+        <span class="link-add">등록하기 +</span>
+      </div>
+      <div class="summary-box"><span class="val">총 10회 정비</span><span class="chev">&#8250;</span></div>
+
+      <div class="history-item">
+        <div class="history-meta"><span>2026.05.03</span><span class="divider"></span><span>LS엠트론 분당대리점</span></div>
+        <div class="history-name">엔진오일 교체</div>
+        <div class="history-detail">
+          <div class="history-detail-left">정비일 누적 운행 시간 <span class="val">1,246.7시간</span></div>
+          <div class="history-link">이력보기 &#8250;</div>
+        </div>
+      </div>
+      <div class="history-item">
+        <div class="history-meta"><span>2026.05.03</span><span class="divider"></span><span>LS엠트론 분당대리점</span></div>
+        <div class="history-name">냉각수 점검</div>
+        <div class="history-detail">
+          <div class="history-detail-left">정비일 누적 운행 시간 <span class="val">186.5시간</span></div>
+        </div>
+      </div>
+      <div class="history-item">
+        <div class="history-meta"><span>2026.05.03</span><span class="divider"></span><span>LS엠트론 분당대리점</span></div>
+        <div class="history-name">엔진 냉각수 교체</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>
