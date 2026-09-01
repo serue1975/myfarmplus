@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>작업 필지 — Scroll Prototype</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --blue-09:#1F69FF;
+  --green-11:#008949;
+  --green-09:#00B862;
+  --green-01:#EBFBF3;
+  --gray-01:#F9FAFB;
+  --gray-02:#F6F7F8;
+  --gray-04:#EBEDEF;
+  --gray-05:#E3E5E8;
+  --gray-06:#D0D4D7;
+  --gray-08:#A0A6AC;
+  --gray-09:#888F95;
+  --gray-10:#6D7379;
+  --gray-12:#464A4E;
+  --gray-15:#1D1F20;
+  --orange:#FF6200;
+  --purple:#851FF9;
+  --red:#FF3B30;
+}
+html,body{height:100%;font-family:'Pretendard',sans-serif;background:#F6F7F8;display:flex;align-items:center;justify-content:center;}
+
+.phone{width:390px;height:844px;background:#fff;border-radius:44px;box-shadow:0 0 0 10px #1a1a1a,0 0 0 12px #2a2a2a,0 32px 80px rgba(0,0,0,.5);overflow:hidden;display:flex;flex-direction:column;position:relative;}
+
+.status-bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:14px 28px 0;flex-shrink:0;z-index:150;background:#fff;}
+.status-time{font-size:15px;font-weight:600;color:var(--gray-15);letter-spacing:-0.5px}
+.status-icons{display:flex;align-items:center;gap:6px}
+
+@media (max-width: 450px) {
+  html, body { background:#fff; align-items:flex-start; justify-content:flex-start; }
+  .phone { width:100vw !important; height:100vh !important; height:100dvh !important; border-radius:0 !important; box-shadow:none !important; }
+}
+
+.screen{ flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative; }
+.header-fixed{ flex-shrink:0; background:#fff; }
+.appbar{ display:flex; align-items:center; gap:8px; padding:12px 20px 12px 16px; }
+.appbar .arrow{ width:24px; height:24px; color:var(--gray-15); }
+.appbar .title{ font-weight:700; font-size:18px; letter-spacing:-0.36px; color:#000; }
+
+.collapse-zone{ overflow:hidden; max-height:220px; transition:max-height 260ms ease; }
+.collapse-zone.collapsed{ max-height:0; }
+
+.kpi-summary{ padding:0 20px 6px; }
+.kpi-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.kpi-top .count{ font-size:14px; letter-spacing:-0.28px; }
+.kpi-top .count .label{ color:var(--gray-08); font-weight:500; }
+.kpi-top .count .num{ color:var(--blue-09); font-weight:600; }
+.kpi-top .area{ font-size:14px; color:var(--gray-08); font-weight:500; }
+
+.kpi-flags{ display:flex; align-items:center; justify-content:space-between; }
+.flag-main{ background:var(--green-01); border-radius:4px; padding:4px 8px; width:80px; }
+.flag-main .l{ font-size:12px; font-weight:600; color:var(--green-11); }
+.flag-main .v{ font-size:13px; font-weight:700; color:var(--green-11); }
+.flag-sub-row{ display:flex; gap:8px; }
+.flag-sub{ width:64px; }
+.flag-sub .l{ font-size:12px; font-weight:600; color:var(--gray-10); display:flex; align-items:center; gap:3px; }
+.flag-sub .dot{ width:4px; height:4px; border-radius:50%; display:inline-block; }
+.flag-sub .v{ font-size:13px; font-weight:700; margin-top:4px; }
+.divider-v{ width:1px; height:32px; background:var(--gray-04); }
+
+.search-wrap{ padding:12px 20px; }
+.search-input{ background:var(--gray-01); border:1px solid var(--gray-05); border-radius:6px; display:flex; align-items:center; justify-content:space-between; padding:8px 10px 8px 14px; height:44px; }
+.search-input .ph{ color:var(--gray-08); font-size:15px; }
+.search-input .icon{ font-size:18px; color:var(--gray-08); }
+
+.chip-row{ display:flex; gap:6px; padding:0 20px 12px; overflow-x:auto; scrollbar-width:none; }
+.chip-row::-webkit-scrollbar{ display:none; }
+.chip{ flex-shrink:0; height:36px; padding:0 12px; border-radius:100px; display:flex; align-items:center; font-size:15px; letter-spacing:-0.3px; white-space:nowrap; }
+.chip.active{ background:var(--gray-15); color:#fff; font-weight:700; }
+.chip:not(.active){ background:#fff; border:1px solid var(--gray-05); color:var(--gray-10); font-weight:400; }
+
+/* chip row: 스크롤 영역 + 우측 고정 편집 버튼 */
+.chip-scroll-wrap{ position:relative; flex:1; min-width:0; overflow:hidden; }
+.chip-scroll{ display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; padding-right:8px; }
+.chip-scroll::-webkit-scrollbar{ display:none; }
+.chip-fade{ position:absolute; top:0; right:0; bottom:0; width:24px; background:linear-gradient(to right, rgba(255,255,255,0), #fff); pointer-events:none; }
+.edit-btn{ flex-shrink:0; height:36px; padding:0 12px; border-radius:6px; border:1px solid var(--gray-06); color:var(--gray-12); font-weight:600; font-size:14px; background:#fff; display:flex; align-items:center; }
+
+/* 전체선택 행 (편집 모드에서만) */
+.select-all-row{ display:none; align-items:center; gap:8px; padding:0 20px 8px; height:34px; }
+.select-all-row.show{ display:flex; }
+.checkbox{ width:20px; height:20px; border-radius:4px; border:1px solid var(--gray-06); background:var(--gray-01); flex-shrink:0; position:relative; }
+.checkbox.checked{ background:var(--blue-09); border-color:var(--blue-09); }
+.checkbox.checked::after{ content:''; position:absolute; left:5px; top:2px; width:5px; height:9px; border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg); }
+.select-all-row .lbl{ font-size:14px; font-weight:500; color:var(--gray-12); }
+
+/* 카드 체크박스 (편집 모드에서만) */
+.card-checkbox{ display:none; flex-shrink:0; align-self:flex-start; margin-top:8px; }
+.card-checkbox.show{ display:block; }
+
+/* 하단 바 (편집 모드에서만) */
+.complete-bar{ position:absolute; left:0; right:0; bottom:0; padding:20px; background:#fff; display:none; z-index:100; }
+.complete-bar.show{ display:block; }
+.complete-btn{ width:100%; height:56px; border-radius:6px; border:none; font-size:18px; font-weight:700; letter-spacing:-0.36px; color:#fff; background:var(--blue-09); }
+
+/* 선택 시 노출되는 수정/삭제 액션 페어 */
+.action-row{ display:none; gap:8px; }
+.action-row.show{ display:flex; }
+.action-row button{ flex:1; height:56px; border-radius:6px; font-size:18px; font-weight:700; letter-spacing:-0.36px; }
+.btn-modify{ background:#fff; border:1px solid var(--gray-06); color:var(--gray-12); }
+.btn-delete{ background:var(--red); color:#fff; border:none; }
+
+.list-scroll{ flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; transition:padding-bottom 200ms ease; }
+.list-scroll.edit-padding{ padding-bottom:96px; }
+.card{ border-top:1px solid var(--gray-04); padding:16px 20px; display:flex; flex-direction:column; gap:8px; }
+.card-top{ display:flex; gap:12px; align-items:center; }
+.swatch{ width:40px; height:40px; border-radius:6px; flex-shrink:0; }
+.card-divider{ width:1px; align-self:stretch; background:var(--gray-04); }
+.parcel-info{ flex:1; min-width:0; }
+.parcel-row{ display:flex; gap:12px; align-items:center; }
+.addr{ font-size:14px; font-weight:600; color:var(--gray-12); }
+.area{ font-size:13px; color:var(--gray-08); font-weight:500; margin-top:2px; }
+.thumb{ width:58px; height:58px; border-radius:6px; flex-shrink:0; position:relative; }
+.thumb .plus{ position:absolute; bottom:4px; right:4px; background:rgba(0,0,0,0.6); color:#fff; font-size:10px; font-weight:600; padding:1px 4px; border-radius:50px; }
+.flags-inline{ display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
+.flag-chip{ display:flex; align-items:center; gap:3px; font-size:12px; font-weight:600; color:var(--gray-10); }
+.flag-chip .v{ font-size:14px; font-weight:600; margin-left:2px; }
+.desc-box{ background:var(--gray-02); border-radius:6px; padding:10px 12px; display:flex; flex-direction:column; gap:4px; }
+.desc-row{ display:flex; align-items:center; gap:4px; font-size:13px; color:var(--gray-10); font-weight:500; }
+.desc-row .status{ margin-left:auto; font-weight:700; text-decoration:underline; }
+.status-progress{ color:var(--blue-09); }
+.status-done{ color:var(--green-09); }
+.status-pause{ color:#ff971f; }
+.status-wait{ color:var(--gray-09); }
+
+.debug{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--gray-15); color:#fff; font-size:11px; text-align:center; padding:6px 10px; border-radius:8px; opacity:0.9; z-index:200; white-space:nowrap; }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="status-bar" id="p-status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="#1D1F20"><rect x="0" y="4" width="3" height="8" rx="1" opacity=".3"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" opacity=".6"/><rect x="9" y="1" width="3" height="11" rx="1" opacity=".8"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 3C5.5 3 3.3 4.1 1.8 5.9L0 4.1C2 1.6 4.8 0 8 0s6 1.6 8 4.1L14.2 5.9C12.7 4.1 10.5 3 8 3z" fill="#1D1F20"/><path d="M8 6c-1.5 0-2.8.6-3.8 1.6L2.5 5.9C3.9 4.4 5.8 3.5 8 3.5s4.1.9 5.5 2.4L11.8 7.6C10.8 6.6 9.5 6 8 6z" fill="#1D1F20"/><circle cx="8" cy="10" r="2" fill="#1D1F20"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y="1" width="20" height="10" rx="3" stroke="#1D1F20" stroke-width="1" opacity=".35"/><rect x="21.5" y="4" width="3" height="4" rx="1" fill="#1D1F20" opacity=".4"/><rect x="2" y="2.5" width="15" height="7" rx="2" fill="#1D1F20"/></svg>
+    </div>
+  </div>
+
+  <div class="screen">
+    <div class="header-fixed">
+      <div class="appbar">
+        <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span class="title">필지 그룹 A</span>
+      </div>
+
+      <div class="collapse-zone" id="collapseZone">
+        <div class="kpi-summary">
+          <div class="kpi-top">
+            <div class="count"><span class="label">전체</span> <span class="num">5</span></div>
+            <div class="area">총 16,800.00m² (5,080.00평) ⓘ</div>
+          </div>
+          <div class="kpi-flags">
+            <div class="flag-main"><div class="l">생산량</div><div class="v">99,999+</div></div>
+            <div class="flag-sub-row">
+              <div class="flag-sub"><div class="l"><span class="dot" style="background:var(--blue-09)"></span>농약</div><div class="v" style="color:var(--blue-09)">99,999.9+</div></div>
+              <div class="divider-v"></div>
+              <div class="flag-sub"><div class="l"><span class="dot" style="background:var(--orange)"></span>비료</div><div class="v" style="color:var(--orange)">99,999.9+</div></div>
+              <div class="divider-v"></div>
+              <div class="flag-sub"><div class="l"><span class="dot" style="background:var(--purple)"></span>종자</div><div class="v" style="color:var(--purple)">99,999.9+</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="search-wrap">
+          <div class="search-input"><span class="ph">주소, 농지주 명, 작물 명, 작업 명</span><span class="icon">🔍</span></div>
+        </div>
+      </div>
+
+      <div class="chip-row" style="display:flex; align-items:center; gap:8px; padding:0 20px 12px;">
+        <div class="chip-scroll-wrap">
+          <div class="chip-scroll">
+            <div class="chip active">전체</div>
+            <div class="chip">농지주별</div>
+            <div class="chip">작업별</div>
+            <div class="chip">작물별</div>
+            <div class="chip">상태별</div>
+          </div>
+          <div class="chip-fade"></div>
+        </div>
+        <button class="edit-btn" id="editBtn">편집</button>
+      </div>
+
+      <div class="select-all-row" id="selectAllRow">
+        <div class="checkbox" id="selectAllCheckbox"></div>
+        <span class="lbl">전체선택</span>
+      </div>
+    </div>
+
+    <div class="list-scroll" id="listScroll">
+      <div class="card">
+        <div class="card-top">
+          <div class="checkbox card-checkbox" data-idx="0"></div>
+          <div class="swatch" style="background:#c94a3a"></div>
+          <div class="card-divider"></div>
+          <div class="parcel-info">
+            <div class="parcel-row">
+              <div><div class="addr">경기도 수원시 장안구 송죽동 789-124</div><div class="area">2,000.00m² (60.00평)</div></div>
+              <div class="thumb" style="background:#d8cf5a"><span class="plus">+3</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="flag-chip" style="background:var(--green-01);border-radius:4px;padding:4px 8px;color:var(--green-11);width:fit-content;">생산량 <span class="v">35,402</span></div>
+        <div class="flags-inline">
+          <div class="flag-chip"><span class="dot" style="width:4px;height:4px;border-radius:50%;background:var(--blue-09);display:inline-block;"></span>농약<span class="v" style="color:var(--blue-09)">148.0</span></div>
+          <div class="flag-chip"><span class="dot" style="width:4px;height:4px;border-radius:50%;background:var(--orange);display:inline-block;"></span>비료<span class="v" style="color:var(--orange)">1,080.8</span></div>
+          <div class="flag-chip"><span class="dot" style="width:4px;height:4px;border-radius:50%;background:var(--purple);display:inline-block;"></span>종자<span class="v" style="color:var(--purple)">80.0</span></div>
+        </div>
+        <div class="desc-box">
+          <div class="desc-row">⊙ 필지 그룹명 A 외 9개</div>
+          <div class="desc-row">👤 박농민</div>
+          <div class="desc-row">🌾 벼 (고시히카리)</div>
+          <div class="desc-row">📋 파종 <span class="status status-progress">작업중</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <div class="checkbox card-checkbox" data-idx="1"></div>
+          <div class="swatch" style="background:#5c9e6b"></div>
+          <div class="card-divider"></div>
+          <div class="parcel-info">
+            <div class="parcel-row">
+              <div><div class="addr">경기도 수원시 장안구 송죽동 789-124</div><div class="area">2,000.00m² (60.00평)</div></div>
+              <div class="thumb" style="background:#7fae6a"><span class="plus">+1</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="flags-inline"><div class="flag-chip"><span class="dot" style="width:4px;height:4px;border-radius:50%;background:var(--purple);display:inline-block;"></span>종자<span class="v" style="color:var(--purple)">80.0</span></div></div>
+        <div class="desc-box">
+          <div class="desc-row">⊙ 필지 그룹명 A 외 9개</div>
+          <div class="desc-row">👤 박농민</div>
+          <div class="desc-row">🌾 벼 (고시히카리)</div>
+          <div class="desc-row">📋 기비살포 <span class="status status-done">완료</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <div class="checkbox card-checkbox" data-idx="2"></div>
+          <div class="swatch" style="background:#e3a23a"></div>
+          <div class="card-divider"></div>
+          <div class="parcel-info">
+            <div class="addr">경기도 수원시 장안구 송죽동 789-124</div>
+            <div class="area">2,000.00m² (60.00평)</div>
+          </div>
+        </div>
+        <div class="flags-inline">
+          <div class="flag-chip"><span class="dot" style="width:4px;height:4px;border-radius:50%;background:var(--orange);display:inline-block;"></span>비료<span class="v" style="color:var(--orange)">1,080.8</span></div>
+          <div class="flag-chip"><span class="dot" style="width:4px;height:4px;border-radius:50%;background:var(--purple);display:inline-block;"></span>종자<span class="v" style="color:var(--purple)">80.0</span></div>
+        </div>
+        <div class="desc-box">
+          <div class="desc-row">⊙ 필지 그룹명 A 외 9개</div>
+          <div class="desc-row">👤 김농민</div>
+          <div class="desc-row">🌾 벼 (고시히카리)</div>
+          <div class="desc-row">📋 기비살포 <span class="status status-done">완료</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <div class="checkbox card-checkbox" data-idx="3"></div>
+          <div class="swatch" style="background:#4a7fc9"></div>
+          <div class="card-divider"></div>
+          <div class="parcel-info">
+            <div class="addr">경기도 수원시 장안구 송죽동 789-124</div>
+            <div class="area">2,000.00m² (60.00평)</div>
+          </div>
+        </div>
+        <div class="flags-inline">
+          <div class="flag-chip"><span class="dot" style="width:4px;height:4px;border-radius:50%;background:var(--blue-09);display:inline-block;"></span>농약<span class="v" style="color:var(--blue-09)">148.0</span></div>
+          <div class="flag-chip"><span class="dot" style="width:4px;height:4px;border-radius:50%;background:var(--orange);display:inline-block;"></span>비료<span class="v" style="color:var(--orange)">1,080.8</span></div>
+          <div class="flag-chip"><span class="dot" style="width:4px;height:4px;border-radius:50%;background:var(--purple);display:inline-block;"></span>종자<span class="v" style="color:var(--purple)">80.0</span></div>
+        </div>
+        <div class="desc-box">
+          <div class="desc-row">⊙ 필지 그룹명 A 외 9개</div>
+          <div class="desc-row">👤 김농민</div>
+          <div class="desc-row">🌾 벼 (고시히카리)</div>
+          <div class="desc-row">📋 집초 <span class="status status-pause">중단</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <div class="checkbox card-checkbox" data-idx="4"></div>
+          <div class="swatch" style="background:#9b7bc9"></div>
+          <div class="card-divider"></div>
+          <div class="parcel-info">
+            <div class="parcel-row">
+              <div><div class="addr">경기도 수원시 장안구 송죽동 789-124</div><div class="area">2,000.00m² (60.00평)</div></div>
+              <div class="thumb" style="background:#4c8a52"><span class="plus">+3</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="desc-box">
+          <div class="desc-row">⊙ 필지 그룹명 A 외 9개</div>
+          <div class="desc-row">👤 박농민</div>
+          <div class="desc-row">🌾 벼 (고시히카리)</div>
+          <div class="desc-row">📋 파종 <span class="status status-wait">대기</span></div>
+        </div>
+      </div>
+
+      <div style="height:60px;"></div>
+    </div>
+
+    <div class="complete-bar" id="completeBar">
+      <button class="complete-btn" id="completeBtn">완료하기</button>
+      <div class="action-row" id="actionRow">
+        <button class="btn-modify" id="modifyBtn">수정하기</button>
+        <button class="btn-delete" id="deleteBtn">삭제하기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="debug" id="debug">스크롤 방향 감지 · 리스트 자체 스크롤 (헤더는 스크롤 영역 밖)</div>
+
+<script>
+  const listScroll = document.getElementById('listScroll');
+  const collapseZone = document.getElementById('collapseZone');
+  const debug = document.getElementById('debug');
+
+  const THRESHOLD = 5;       // 이 정도 미세한 흔들림은 무시
+  const LOCK_MS = 280;       // 트랜지션 도중 재판단 방지
+
+  let lastY = 0;
+  let collapsed = false;
+  let locked = false;
+
+  listScroll.addEventListener('scroll', () => {
+    if (locked) return;
+
+    const y = listScroll.scrollTop;
+    const diff = y - lastY; // 양수: 아래로, 음수: 위로
+
+    if (y <= 0) {
+      lastY = 0;
+      if (collapsed) {
+        collapseZone.classList.remove('collapsed');
+        collapsed = false;
+        debug.textContent = '최상단 · 헤더 펼침';
+      }
+      return;
+    }
+
+    if (Math.abs(diff) < THRESHOLD) return; // 흔들림 무시, lastY도 갱신 안 함(다음 이벤트와 계속 비교)
+
+    if (diff > 0 && !collapsed) {
+      // 방향 전환 없이 계속 아래로 → 접기
+      collapseZone.classList.add('collapsed');
+      collapsed = true;
+      debug.textContent = '아래로 스크롤 · KPI+검색창 숨김';
+      locked = true;
+      setTimeout(() => { locked = false; }, LOCK_MS);
+    } else if (diff < 0 && collapsed) {
+      // 방향이 위로 바뀌는 즉시 → 펼치기 (누적량 무관, 어느 위치든 즉시 반응)
+      collapseZone.classList.remove('collapsed');
+      collapsed = false;
+      debug.textContent = '위로 스크롤 전환 · 즉시 재등장';
+      locked = true;
+      setTimeout(() => { locked = false; }, LOCK_MS);
+    }
+
+    lastY = y;
+  }, { passive: true });
+
+  // ===== 편집 모드 =====
+  const editBtn = document.getElementById('editBtn');
+  const selectAllRow = document.getElementById('selectAllRow');
+  const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+  const cardCheckboxes = Array.from(document.querySelectorAll('.card-checkbox'));
+  const completeBar = document.getElementById('completeBar');
+  const completeBtn = document.getElementById('completeBtn');
+  const actionRow = document.getElementById('actionRow');
+  const modifyBtn = document.getElementById('modifyBtn');
+  const deleteBtn = document.getElementById('deleteBtn');
+
+  let editMode = false;
+  const selected = new Set();
+
+  function updateActionUI() {
+    const n = selected.size;
+    if (n > 0) {
+      completeBtn.style.display = 'none';
+      actionRow.classList.add('show');
+      modifyBtn.textContent = `${n}개 수정하기`;
+      deleteBtn.textContent = `${n}개 삭제하기`;
+    } else {
+      completeBtn.style.display = 'block';
+      actionRow.classList.remove('show');
+    }
+    selectAllCheckbox.classList.toggle('checked', n === cardCheckboxes.length);
+  }
+
+  function toggleEditMode(on) {
+    editMode = on;
+    editBtn.style.display = on ? 'none' : 'flex';
+    selectAllRow.classList.toggle('show', on);
+    completeBar.classList.toggle('show', on);
+    listScroll.classList.toggle('edit-padding', on);
+    cardCheckboxes.forEach(cb => cb.classList.toggle('show', on));
+    if (!on) { selected.clear(); cardCheckboxes.forEach(cb => cb.classList.remove('checked')); }
+    updateActionUI();
+    debug.textContent = on ? '편집 모드 · 항목을 선택하세요 (완료하기 = 편집 모드 종료)' : '편집 모드 종료';
+  }
+
+  editBtn.addEventListener('click', () => toggleEditMode(true));
+  completeBtn.addEventListener('click', () => toggleEditMode(false));
+
+  cardCheckboxes.forEach(cb => {
+    cb.addEventListener('click', () => {
+      const idx = cb.dataset.idx;
+      if (selected.has(idx)) { selected.delete(idx); cb.classList.remove('checked'); }
+      else { selected.add(idx); cb.classList.add('checked'); }
+      updateActionUI();
+    });
+  });
+
+  selectAllCheckbox.addEventListener('click', () => {
+    const allSelected = selected.size === cardCheckboxes.length;
+    if (allSelected) {
+      selected.clear();
+      cardCheckboxes.forEach(cb => cb.classList.remove('checked'));
+    } else {
+      cardCheckboxes.forEach(cb => { selected.add(cb.dataset.idx); cb.classList.add('checked'); });
+    }
+    updateActionUI();
+  });
+
+  modifyBtn.addEventListener('click', () => {
+    debug.textContent = `${selected.size}개 항목 수정 화면으로 이동 (데모)`;
+  });
+
+  deleteBtn.addEventListener('click', () => {
+    debug.textContent = `${selected.size}개 항목 삭제됨 (데모)`;
+    toggleEditMode(false);
+  });
+</script>
+
+</body>
+</html>

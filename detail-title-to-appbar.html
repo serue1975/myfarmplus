@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>농작업 상세 — Collapsing Header Prototype</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --blue-09:#1F69FF;
+  --gray-01:#F9FAFB;
+  --gray-03:#F1F2F4;
+  --gray-04:#EBEDEF;
+  --gray-05:#E3E5E8;
+  --gray-06:#D0D4D7;
+  --gray-08:#A0A6AC;
+  --gray-09:#888F95;
+  --gray-10:#6D7379;
+  --gray-12:#464A4E;
+  --gray-13:#383B3E;
+  --gray-15:#1D1F20;
+}
+html,body{height:100%;font-family:'Pretendard',sans-serif;background:#F6F7F8;display:flex;align-items:center;justify-content:center;}
+
+.phone{width:390px;height:844px;background:#fff;border-radius:44px;box-shadow:0 0 0 10px #1a1a1a,0 0 0 12px #2a2a2a,0 32px 80px rgba(0,0,0,.5);overflow:hidden;display:flex;flex-direction:column;position:relative;}
+.status-bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:14px 28px 0;flex-shrink:0;z-index:150;background:#fff;}
+.status-time{font-size:15px;font-weight:600;color:var(--gray-15);letter-spacing:-0.5px}
+.status-icons{display:flex;align-items:center;gap:6px}
+
+@media (max-width: 450px) {
+  html, body { background:#fff; align-items:flex-start; justify-content:flex-start; }
+  .phone { width:100vw !important; height:100vh !important; height:100dvh !important; border-radius:0 !important; box-shadow:none !important; }
+}
+
+.screen{ flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative; }
+.header-fixed{ flex-shrink:0; background:#fff; position:relative; z-index:10; }
+
+/* ===== Appbar: 두 레이어를 겹쳐놓고 opacity 크로스페이드 ===== */
+.appbar-wrap{ position:relative; height:56px; }
+.appbar-layer{ position:absolute; inset:0; display:flex; align-items:center; transition:opacity 200ms ease; }
+.touch-area{ width:32px; height:32px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.touch-area svg{ width:24px; height:24px; color:var(--gray-15); }
+
+.appbar-default{ padding:0 20px 0 16px; gap:8px; }
+.appbar-default .title{ font-weight:700; font-size:18px; letter-spacing:-0.36px; color:var(--gray-15); }
+.appbar-default.hide{ opacity:0; pointer-events:none; }
+
+.appbar-scrolled{ padding:0 16px; justify-content:space-between; opacity:0; pointer-events:none; }
+.appbar-scrolled.show{ opacity:1; pointer-events:auto; }
+.appbar-center{ display:flex; flex-direction:column; align-items:center; gap:2px; }
+.appbar-center .t{ font-weight:700; font-size:15px; letter-spacing:-0.3px; color:var(--gray-15); }
+.appbar-center .m{ font-weight:600; font-size:13px; letter-spacing:-0.26px; color:var(--gray-12); }
+.appbar-center .m .dot{ color:var(--gray-08); }
+.spacer{ width:32px; height:32px; flex-shrink:0; }
+
+/* ===== Page Header (접히는 영역) ===== */
+.page-header-zone{ overflow:hidden; max-height:100px; transition:max-height 260ms ease, opacity 200ms ease; }
+.page-header-zone.collapsed{ max-height:0; opacity:0; }
+.page-header{ padding:0 20px 16px; border-bottom:1px solid var(--gray-03); }
+.ph-top{ display:flex; align-items:center; justify-content:space-between; height:32px; }
+.ph-title{ font-weight:700; font-size:22px; letter-spacing:-0.44px; color:var(--gray-15); }
+.unit-toggle{ display:flex; }
+.unit-toggle span{ width:28px; height:28px; background:var(--gray-03); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; }
+.unit-toggle span:first-child{ border-radius:6px 0 0 6px; }
+.unit-toggle span:last-child{ border-radius:0 6px 6px 0; color:var(--gray-09); font-weight:600; }
+.unit-toggle span.active{ background:#fff; border-radius:5px; color:var(--gray-13); margin:2px; width:24px; height:24px; }
+.ph-meta{ font-weight:700; font-size:16px; letter-spacing:-0.32px; color:var(--gray-12); margin-top:2px; }
+.ph-meta .dot{ color:var(--gray-08); }
+
+/* ===== 리스트 ===== */
+.list-scroll{ flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; position:relative; }
+.date-group{ padding:20px 20px 0; }
+.date-group:not(:first-child){ padding-top:40px; }
+.date-group:last-child{ padding-bottom:80px; }
+.date-label{ font-weight:600; font-size:13px; letter-spacing:-0.26px; color:var(--gray-09); margin-bottom:20px; }
+.person-row{ display:flex; gap:16px; align-items:center; margin-bottom:20px; }
+.person-row:last-child{ margin-bottom:0; }
+.avatar{ width:40px; height:40px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:18px; }
+.p-info{ flex:1; min-width:0; }
+.p-addr{ font-weight:700; font-size:16px; letter-spacing:-0.32px; color:var(--gray-12); }
+.p-meta{ font-weight:600; font-size:12px; letter-spacing:-0.24px; color:var(--gray-10); margin-top:4px; }
+.p-meta .dim{ color:var(--gray-06); }
+.p-meta .val{ color:var(--gray-08); }
+.p-meta .name{ color:#5A5F63; }
+
+/* ===== floating 위로 올라가기 ===== */
+.scroll-top-btn{
+  position:absolute; left:50%; bottom:24px; transform:translateX(-50%);
+  height:48px; padding:0 20px; border-radius:100px; background:#fff;
+  box-shadow:0 2px 16px rgba(0,0,0,0.12); border:none;
+  display:flex; align-items:center; gap:6px; z-index:50; cursor:pointer;
+  opacity:0; pointer-events:none; transition:opacity 200ms ease;
+}
+.scroll-top-btn.show{ opacity:1; pointer-events:auto; }
+.scroll-top-btn .ic{ width:20px; height:20px; border-radius:50%; background:var(--blue-09); display:flex; align-items:center; justify-content:center; }
+.scroll-top-btn .ic svg{ width:12px; height:12px; }
+.scroll-top-btn span{ font-weight:600; font-size:15px; letter-spacing:-0.3px; color:var(--gray-12); }
+
+.debug{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--gray-15); color:#fff; font-size:11px; text-align:center; padding:6px 10px; border-radius:8px; opacity:0.9; z-index:200; white-space:nowrap; }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="#1D1F20"><rect x="0" y="4" width="3" height="8" rx="1" opacity=".3"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" opacity=".6"/><rect x="9" y="1" width="3" height="11" rx="1" opacity=".8"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 3C5.5 3 3.3 4.1 1.8 5.9L0 4.1C2 1.6 4.8 0 8 0s6 1.6 8 4.1L14.2 5.9C12.7 4.1 10.5 3 8 3z" fill="#1D1F20"/><path d="M8 6c-1.5 0-2.8.6-3.8 1.6L2.5 5.9C3.9 4.4 5.8 3.5 8 3.5s4.1.9 5.5 2.4L11.8 7.6C10.8 6.6 9.5 6 8 6z" fill="#1D1F20"/><circle cx="8" cy="10" r="2" fill="#1D1F20"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x=".5" y="1" width="20" height="10" rx="3" stroke="#1D1F20" stroke-width="1" opacity=".35"/><rect x="21.5" y="4" width="3" height="4" rx="1" fill="#1D1F20" opacity=".4"/><rect x="2" y="2.5" width="15" height="7" rx="2" fill="#1D1F20"/></svg>
+    </div>
+  </div>
+
+  <div class="screen">
+    <div class="header-fixed">
+      <div class="appbar-wrap">
+        <!-- 기본 상태: 좌측 정렬 큰 타이틀 -->
+        <div class="appbar-layer appbar-default" id="appbarDefault">
+          <div class="touch-area"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></div>
+          <span class="title">농작업 상세</span>
+        </div>
+        <!-- 스크롤 상태: 중앙 정렬 축소 타이틀 + 메타 -->
+        <div class="appbar-layer appbar-scrolled" id="appbarScrolled">
+          <div class="touch-area"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></div>
+          <div class="appbar-center">
+            <div class="t">조사료 작업</div>
+            <div class="m">217건 <span class="dot">•</span> 170,200,000㎡</div>
+          </div>
+          <div class="spacer"></div>
+        </div>
+      </div>
+
+      <div class="page-header-zone" id="pageHeaderZone">
+        <div class="page-header">
+          <div class="ph-top">
+            <div class="ph-title">조사료 작업</div>
+            <div class="unit-toggle"><span class="active">㎡</span><span>평</span></div>
+          </div>
+          <div class="ph-meta">217건 <span class="dot">•</span> 170,200,000㎡</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="list-scroll" id="listScroll">
+      <div class="date-group">
+        <div class="date-label">7월 10일 금요일</div>
+        <div class="person-row">
+          <div class="avatar" style="background:#FEB6B7">🐷</div>
+          <div class="p-info"><div class="p-addr">아산시 둔포면 신항리 34</div><div class="p-meta"><span class="name">작업자이름6...</span> <span class="dim">•</span> <span class="val">작업그룹명은열자까지...</span> <span class="dim">•</span> <span class="val">999,999㎡</span></div></div>
+        </div>
+        <div class="person-row">
+          <div class="avatar" style="background:#9C9C9C">🐑</div>
+          <div class="p-info"><div class="p-addr">군산시 옥구읍 옥정리 502</div><div class="p-meta"><span class="name">이상현</span> <span class="dim">•</span> <span class="val">2026 조사료 그룹</span> <span class="dim">•</span> <span class="val">32,183㎡</span></div></div>
+        </div>
+        <div class="person-row">
+          <div class="avatar" style="background:#A1D5FF">🐰</div>
+          <div class="p-info"><div class="p-addr">영암군 삼호읍 나불리 220-1</div><div class="p-meta"><span class="name">김용민</span> <span class="dim">•</span> <span class="val">1단지 병해충 방제</span> <span class="dim">•</span> <span class="val">32,183㎡</span></div></div>
+        </div>
+      </div>
+
+      <div class="date-group">
+        <div class="date-label">7월 9일 목요일</div>
+        <div class="person-row">
+          <div class="avatar" style="background:#8EA1FF">🐭</div>
+          <div class="p-info"><div class="p-addr">평택시 팽성읍 노와리 210-4</div><div class="p-meta"><span class="name">김철수</span> <span class="dim">•</span> <span class="val">5단지 벼농사 그룹</span> <span class="dim">•</span> <span class="val">32,183㎡</span></div></div>
+        </div>
+        <div class="person-row">
+          <div class="avatar" style="background:#5DAD8D">🦉</div>
+          <div class="p-info"><div class="p-addr">서산시 부석면 창리 115-3</div><div class="p-meta"><span class="name">박보검</span> <span class="dim">•</span> <span class="val">2026 조사료 그룹</span> <span class="dim">•</span> <span class="val">32,183㎡</span></div></div>
+        </div>
+      </div>
+
+      <div class="date-group">
+        <div class="date-label">7월 8일 수요일</div>
+        <div class="person-row">
+          <div class="avatar" style="background:#DF5F65">🐔</div>
+          <div class="p-info"><div class="p-addr">당진시 신평면 매산리 345-2</div><div class="p-meta"><span class="name">옆집 김서방</span> <span class="dim">•</span> <span class="val">5단지 벼농사 그룹</span> <span class="dim">•</span> <span class="val">32,183㎡</span></div></div>
+        </div>
+        <div class="person-row">
+          <div class="avatar" style="background:#755856">🐒</div>
+          <div class="p-info"><div class="p-addr">김제시 진봉면 심포리 102</div><div class="p-meta"><span class="name">낭만농부</span> <span class="dim">•</span> <span class="val">2026 조사료 그룹</span> <span class="dim">•</span> <span class="val">32,183㎡</span></div></div>
+        </div>
+        <div class="person-row">
+          <div class="avatar" style="background:#FFD58E">🐯</div>
+          <div class="p-info"><div class="p-addr">화성시 송산면 고정리 78-1</div><div class="p-meta"><span class="name">김용민</span> <span class="dim">•</span> <span class="val">1단지 병해충 방제</span> <span class="dim">•</span> <span class="val">32,183㎡</span></div></div>
+        </div>
+        <div class="person-row">
+          <div class="avatar" style="background:#346234">🐄</div>
+          <div class="p-info"><div class="p-addr">무안군 해제면 양매리 504</div><div class="p-meta"><span class="name">홍길동</span> <span class="dim">•</span> <span class="val">논 물관리 그룹</span> <span class="dim">•</span> <span class="val">32,183㎡</span></div></div>
+        </div>
+      </div>
+
+      <div class="date-group">
+        <div class="date-label">7월 7일 화요일</div>
+        <div class="person-row">
+          <div class="avatar" style="background:#FEB6B7">🐷</div>
+          <div class="p-info"><div class="p-addr">천안시 서북구 성거읍 삼거리 12-3</div><div class="p-meta"><span class="name">최민수</span> <span class="dim">•</span> <span class="val">3단지 밭작물 그룹</span> <span class="dim">•</span> <span class="val">18,442㎡</span></div></div>
+        </div>
+        <div class="person-row">
+          <div class="avatar" style="background:#9C9C9C">🐑</div>
+          <div class="p-info"><div class="p-addr">아산시 배방읍 세교리 88</div><div class="p-meta"><span class="name">정하늘</span> <span class="dim">•</span> <span class="val">2026 조사료 그룹</span> <span class="dim">•</span> <span class="val">27,900㎡</span></div></div>
+        </div>
+        <div class="person-row">
+          <div class="avatar" style="background:#A1D5FF">🐰</div>
+          <div class="p-info"><div class="p-addr">예산군 삽교읍 신가리 45-1</div><div class="p-meta"><span class="name">강태오</span> <span class="dim">•</span> <span class="val">1단지 병해충 방제</span> <span class="dim">•</span> <span class="val">32,183㎡</span></div></div>
+        </div>
+      </div>
+
+      <div class="date-group">
+        <div class="date-label">7월 6일 월요일</div>
+        <div class="person-row">
+          <div class="avatar" style="background:#8EA1FF">🐭</div>
+          <div class="p-info"><div class="p-addr">홍성군 홍북읍 노은리 210</div><div class="p-meta"><span class="name">서지훈</span> <span class="dim">•</span> <span class="val">5단지 벼농사 그룹</span> <span class="dim">•</span> <span class="val">45,120㎡</span></div></div>
+        </div>
+        <div class="person-row">
+          <div class="avatar" style="background:#5DAD8D">🦉</div>
+          <div class="p-info"><div class="p-addr">보령시 청소면 진죽리 33-2</div><div class="p-meta"><span class="name">오세훈</span> <span class="dim">•</span> <span class="val">2026 조사료 그룹</span> <span class="dim">•</span> <span class="val">22,780㎡</span></div></div>
+        </div>
+      </div>
+
+      <div class="date-group">
+        <div class="date-label">7월 5일 일요일</div>
+        <div class="person-row">
+          <div class="avatar" style="background:#DF5F65">🐔</div>
+          <div class="p-info"><div class="p-addr">서천군 장항읍 화천리 67</div><div class="p-meta"><span class="name">임재현</span> <span class="dim">•</span> <span class="val">3단지 밭작물 그룹</span> <span class="dim">•</span> <span class="val">31,050㎡</span></div></div>
+        </div>
+        <div class="person-row">
+          <div class="avatar" style="background:#755856">🐒</div>
+          <div class="p-info"><div class="p-addr">부여군 규암면 신리 21-4</div><div class="p-meta"><span class="name">한지민</span> <span class="dim">•</span> <span class="val">1단지 병해충 방제</span> <span class="dim">•</span> <span class="val">19,600㎡</span></div></div>
+        </div>
+        <div class="person-row">
+          <div class="avatar" style="background:#FFD58E">🐯</div>
+          <div class="p-info"><div class="p-addr">공주시 유구읍 동해리 9</div><div class="p-meta"><span class="name">윤도현</span> <span class="dim">•</span> <span class="val">2026 조사료 그룹</span> <span class="dim">•</span> <span class="val">27,300㎡</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="scroll-top-btn" id="scrollTopBtn">
+      <span class="ic"><svg viewBox="0 0 12 12" fill="none"><path d="M6 10V2M2 6l4-4 4 4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span>위로 올라가기</span>
+    </button>
+  </div>
+</div>
+
+<div class="debug" id="debug">스크롤 방향 감지 · 타이틀이 앱바 중앙으로 이동</div>
+
+<script>
+  const listScroll = document.getElementById('listScroll');
+  const pageHeaderZone = document.getElementById('pageHeaderZone');
+  const appbarDefault = document.getElementById('appbarDefault');
+  const appbarScrolled = document.getElementById('appbarScrolled');
+  const scrollTopBtn = document.getElementById('scrollTopBtn');
+  const debug = document.getElementById('debug');
+
+  const THRESHOLD = 5;
+  const LOCK_MS = 280;
+
+  let lastY = 0;
+  let collapsed = false;
+  let locked = false;
+
+  function setCollapsed(on) {
+    collapsed = on;
+    pageHeaderZone.classList.toggle('collapsed', on);
+    appbarDefault.classList.toggle('hide', on);
+    appbarScrolled.classList.toggle('show', on);
+  }
+
+  listScroll.addEventListener('scroll', () => {
+    const y = listScroll.scrollTop;
+
+    // 위로 올라가기 버튼: 최상단이 아니면 노출, 최상단이면 숨김 (방향과 무관)
+    scrollTopBtn.classList.toggle('show', y > 20);
+
+    if (locked) return;
+    const diff = y - lastY;
+
+    if (y <= 0) {
+      lastY = 0;
+      if (collapsed) { setCollapsed(false); debug.textContent = '최상단 · 기본 앱바'; }
+      return;
+    }
+
+    if (Math.abs(diff) < THRESHOLD) return;
+
+    if (diff > 0 && !collapsed) {
+      setCollapsed(true);
+      debug.textContent = '아래로 스크롤 · 타이틀이 앱바 중앙으로';
+      locked = true; setTimeout(() => locked = false, LOCK_MS);
+    } else if (diff < 0 && collapsed) {
+      setCollapsed(false);
+      debug.textContent = '위로 스크롤 전환 · 즉시 기본 앱바로 복귀';
+      locked = true; setTimeout(() => locked = false, LOCK_MS);
+    }
+
+    lastY = y;
+  }, { passive: true });
+
+  scrollTopBtn.addEventListener('click', () => {
+    listScroll.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+</script>
+
+</body>
+</html>
