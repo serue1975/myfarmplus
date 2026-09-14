@@ -149,6 +149,22 @@
   .cta-btn.disabled{background:var(--g08);color:var(--white);pointer-events:none}
   .cta-btn:active{background:#1656d1}
 
+  /* 자동 전진 연출: 하단 버튼은 활성으로 깜빡이지 않고 그대로 사라짐 */
+  .bottom-cta{transition:opacity .18s ease, transform .18s ease}
+  .bottom-cta.is-leaving{opacity:0;transform:translateY(8px);pointer-events:none}
+
+  /* 다음 그룹이 '뒤늦게 나타나는' 연출 */
+  @keyframes groupIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes softIn{from{opacity:0}to{opacity:1}}
+  .step-screen.reveal > .summary-stack{animation:softIn .26s ease both}
+  .step-screen.reveal > .section-head{animation:groupIn .28s cubic-bezier(.22,.61,.36,1) .03s both}
+  .step-screen.reveal > .field-stack,
+  .step-screen.reveal > .req-block{animation:groupIn .32s cubic-bezier(.22,.61,.36,1) .08s both}
+  @media (prefers-reduced-motion: reduce){
+    .step-screen.reveal > *{animation:none !important}
+    .bottom-cta{transition:none}
+  }
+
   /* 바텀시트 공통 */
   .sheet-overlay{position:absolute;inset:0;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:50}
   .sheet-overlay.show{opacity:1;pointer-events:auto}
@@ -481,9 +497,15 @@ const data = {
 
 /* ===== 화면 전환 ===== */
 function showStep(n){
+  cancelAutoAdvance();
   currentStep = n;
-  document.querySelectorAll('.step-screen').forEach(el => el.classList.remove('active'));
-  document.getElementById('screen-'+n).classList.add('active');
+  document.querySelectorAll('.step-screen').forEach(el => el.classList.remove('active','reveal'));
+  const screenEl = document.getElementById('screen-'+n);
+  screenEl.classList.add('active');
+  void screenEl.offsetWidth;          // 리플로우 — 같은 화면을 다시 열어도 애니메이션이 재생되도록
+  screenEl.classList.add('reveal');
+  clearTimeout(revealTimer);
+  revealTimer = setTimeout(() => screenEl.classList.remove('reveal'), 500);
   document.getElementById('stepLabel').textContent = n + '/4';
   document.getElementById('scrollArea').scrollTop = 0;
   prefillStep(n);
@@ -501,6 +523,56 @@ function goBack(){
 
 function goNext(){
   if(currentStep < 4) showStep(currentStep + 1);
+}
+
+/* ===== 그룹 완료 판정 (하단 버튼 활성 조건 = 자동 전진 조건) ===== */
+function isStepComplete(n){
+  if(n === 1) return !!(data.hours && data.year);
+  if(n === 2) return !!((data.store || data.storeSkipped) && (data.date || data.dateSkipped));
+  if(n === 3) return !!(data.serial || data.serialSkipped || data.photoDone);
+  return true;
+}
+
+/* ===== 선택형 필드(바텀시트) 확정 시 자동 전진 =====
+   - 그룹의 마지막 미입력 항목이 선택형 필드일 때만 발동
+   - 타임라인: 0ms 확인 → 시트 슬라이드다운(.3s) → 300ms 하단 버튼 페이드아웃
+     → 480ms 다음 그룹 노출. '다음'이 파랗게 활성됐다 사라지는 깜빡임이 없음 */
+const SHEET_CLOSE_MS   = 300;  // .sheet-panel transition .3s
+const FOOTER_FADE_MS   = 180;  // .bottom-cta transition .18s
+const AUTO_ADVANCE_DELAY = SHEET_CLOSE_MS + FOOTER_FADE_MS;
+
+let autoAdvancePending = false;
+let autoAdvanceTimer = null;
+let footerFadeTimer = null;
+let revealTimer = null;
+
+function cancelAutoAdvance(){
+  clearTimeout(autoAdvanceTimer);
+  clearTimeout(footerFadeTimer);
+  autoAdvancePending = false;
+}
+
+function maybeAutoAdvance(){
+  if(currentStep >= 4) return false;
+  if(!isStepComplete(currentStep)) return false;
+
+  cancelAutoAdvance();
+  autoAdvancePending = true;      // renderFooter가 '다음'을 활성으로 그리지 않게 함
+  const from = currentStep;
+
+  // 시트가 다 내려가 값이 보인 뒤에야 하단 버튼을 걷어냄
+  footerFadeTimer = setTimeout(() => {
+    if(autoAdvancePending) document.getElementById('bottomCta').classList.add('is-leaving');
+  }, SHEET_CLOSE_MS);
+
+  autoAdvanceTimer = setTimeout(() => {
+    autoAdvancePending = false;
+    // 대기 중 사용자가 직접 이동했거나 값을 지운 경우엔 원상 복구
+    if(currentStep !== from || !isStepComplete(from)){ renderFooter(); return; }
+    goNext();
+  }, AUTO_ADVANCE_DELAY);
+
+  return true;
 }
 
 /* ===== 프리필: 재방문 시 이전에 입력한 값 복원 ===== */
@@ -781,14 +853,10 @@ function setRDateDisplay(){
 /* ===== 하단 버튼 ===== */
 function renderFooter(){
   const footer = document.getElementById('bottomCta');
-  if(currentStep === 1){
-    const enabled = data.hours && data.year;
-    footer.innerHTML = `<div class="cta-btn${enabled?'':' disabled'}" onclick="goNext()">다음</div>`;
-  } else if(currentStep === 2){
-    const enabled = (data.store || data.storeSkipped) && (data.date || data.dateSkipped);
-    footer.innerHTML = `<div class="cta-btn${enabled?'':' disabled'}" onclick="goNext()">다음</div>`;
-  } else if(currentStep === 3){
-    const enabled = !!data.serial || data.serialSkipped || data.photoDone;
+  footer.classList.remove('is-leaving');
+  if(currentStep === 1 || currentStep === 2 || currentStep === 3){
+    // 자동 전진이 예약된 동안에는 '다음'을 활성으로 그리지 않는다 (깜빡임 방지)
+    const enabled = isStepComplete(currentStep) && !autoAdvancePending;
     footer.innerHTML = `<div class="cta-btn${enabled?'':' disabled'}" onclick="goNext()">다음</div>`;
   } else if(currentStep === 4){
     footer.innerHTML = `
@@ -838,6 +906,7 @@ function confirmYear(){
     styleStep1();
   }
   document.getElementById('yearSheetOverlay').classList.remove('show');
+  if(yearSheetContext !== 'review') maybeAutoAdvance();
   renderFooter();
 }
 
@@ -911,6 +980,7 @@ function closeDateSheet(){
   document.getElementById('dateSheetOverlay').classList.remove('show');
 }
 function confirmDate(){
+  const committed = !!tempDate;
   if(tempDate){
     const mm = String(tempDate.m+1).padStart(2,'0');
     const dd = String(tempDate.d).padStart(2,'0');
@@ -925,6 +995,7 @@ function confirmDate(){
     }
   }
   document.getElementById('dateSheetOverlay').classList.remove('show');
+  if(committed && dateSheetContext !== 'review') maybeAutoAdvance();
   renderFooter();
 }
 
