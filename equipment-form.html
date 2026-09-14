@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
+<title>장비 정보 입력 - 4단계 마법사 구조</title>
+<style>
+  :root{
+    --blue:#1F69FF;
+    --blue-light:#6095FF;
+    --blue-tint-bg:#EEF4FF;
+    --blue-tint-border:#AFCAFF;
+    --blue-soft-bg:#E4EDFF;
+    --blue-dark:#003DB8;
+    --blue-outline:#77A4FF;
+
+    --g90:#1D1F20;
+    --g70:#383B3E;
+    --g60:#464A4E;
+    --g50:#6D7379;
+    --g30:#A0A6AC;
+    --g15:#D0D4D7;
+    --g08:#E3E5E8;
+    --g04:#EBEDEF;
+    --g02:#F6F7F8;
+    --g01:#F9FAFB;
+    --white:#FFFFFF;
+    --red:#F1543F;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html, body{height:100%}
+  body{
+    font-family:"Pretendard","Apple SD Gothic Neo",-apple-system,BlinkMacSystemFont,sans-serif;
+    background:#DCDFE3;
+    min-height:100dvh;
+    padding:40px 20px;
+    position:relative;
+  }
+
+  .phone{
+    width:390px;height:844px;background:var(--white);
+    border-radius:44px;box-shadow:0 30px 60px rgba(0,0,0,.28);
+    overflow:hidden;
+    border:8px solid #0B0D10;
+    position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  }
+  .header-fixed{position:absolute;top:0;left:0;right:0;z-index:20;background:var(--white)}
+  .statusbar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:15px;font-weight:600;color:var(--g90)}
+  .statusbar .icons{display:flex;gap:5px;align-items:center}
+  .appbar{height:56px;display:flex;align-items:center;justify-content:space-between;padding:12px 20px 12px 16px}
+  .back{width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .back svg{width:24px;height:24px}
+  .step{font-size:16px;color:var(--g50);font-weight:500;letter-spacing:-0.32px}
+
+  .scroll-area{position:absolute;top:100px;left:0;right:0;bottom:0;overflow-y:auto;padding-bottom:110px;z-index:5}
+  .scroll-area::-webkit-scrollbar{display:none}
+
+  .title-wrap{padding:0 20px 16px 20px}
+  h1.title{font-size:22px;font-weight:700;color:var(--g90);letter-spacing:-0.44px}
+
+  .step-screen{display:none}
+  .step-screen.active{display:block}
+
+  .field-group{display:flex;flex-direction:column;gap:8px;padding:0 20px}
+  .field-label-row{display:flex;align-items:center;justify-content:space-between}
+  .field-label{font-size:16px;font-weight:700;color:var(--g90);letter-spacing:-0.32px}
+  .skip-link{font-size:13px;color:var(--blue);font-weight:500;letter-spacing:-0.26px;cursor:pointer;flex-shrink:0}
+
+  .input-box{
+    height:48px;background:var(--g01);border:1px solid var(--g08);border-radius:6px;
+    display:flex;align-items:center;justify-content:space-between;padding:0 16px;
+  }
+  .input-box input{border:none;background:none;outline:none;font-size:16px;color:var(--g90);width:100%;font-family:inherit;font-weight:500;letter-spacing:-0.32px}
+  .input-box input::placeholder{color:var(--g30)}
+  .input-box.filled{background:var(--g01);border-color:transparent}
+  .input-box.focused-live{background:var(--white);border-color:var(--blue)}
+  .clear-btn{display:none;width:20px;height:20px;border-radius:50%;background:var(--g15);align-items:center;justify-content:center;flex-shrink:0;margin-left:8px;cursor:pointer}
+  .clear-btn svg{width:11px;height:11px;color:white}
+  .clear-btn.show{display:flex}
+  .input-box.filled-persistent{background:var(--blue-tint-bg);border-color:var(--blue-tint-border)}
+  .unit{font-size:14px;color:var(--g50);flex-shrink:0;padding-left:8px}
+  .helper{font-size:13px;color:var(--g30);padding:0 20px}
+  .helper b{color:var(--g50);font-weight:600}
+
+  .picker-display{font-size:16px;font-weight:500;color:var(--g30);letter-spacing:-0.32px;width:100%;cursor:pointer;user-select:none}
+  .picker-display.has-value{color:var(--g90)}
+
+  .field-stack{display:flex;flex-direction:column;gap:24px;padding:0 0 24px 0}
+  .req-block{padding-bottom:24px;border-bottom:8px solid transparent}
+  .req-block.divider-on{border-bottom-color:var(--g02)}
+
+  .section-head{padding:24px 20px 32px 20px;display:flex;flex-direction:column;gap:4px}
+  .section-title{font-size:20px;font-weight:700;color:var(--g90);letter-spacing:-0.4px}
+  .section-desc{font-size:13px;color:var(--g30);letter-spacing:-0.26px}
+
+  .photo-guide{background:var(--g02);border-radius:6px;padding:16px 20px;display:flex;flex-direction:column;gap:10px;margin:16px 20px 0 20px}
+  .photo-guide-title{font-size:14px;font-weight:700;color:var(--g70);letter-spacing:-0.28px}
+  .plate-card{background:var(--white);border:1px solid var(--g04);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;position:relative}
+  .bar-row{display:flex;gap:10px;align-items:center}
+  .bar{height:8px;background:var(--g15);border-radius:2px}
+  .highlight-row{background:var(--blue-soft-bg);border-radius:6px;padding:6px 8px;display:flex;align-items:center;gap:15px;position:relative}
+  .highlight-label{font-size:13px;font-weight:600;color:var(--blue-dark);letter-spacing:-0.26px}
+  .highlight-value{font-size:16px;font-weight:700;color:var(--blue-dark);letter-spacing:-0.32px}
+  .tooltip{position:absolute;right:-6px;top:-34px;background:var(--blue);color:var(--white);font-size:12px;font-weight:600;padding:5px 10px;border-radius:4px;white-space:nowrap;letter-spacing:-0.24px}
+  .corner{position:absolute;width:14px;height:14px;border:2px solid var(--blue)}
+  .corner.tl{top:0;left:0;border-right:none;border-bottom:none}
+  .corner.tr{top:0;right:0;border-left:none;border-bottom:none}
+  .corner.bl{bottom:0;left:0;border-right:none;border-top:none}
+  .corner.br{bottom:0;right:0;border-left:none;border-top:none}
+  .guide-frame{position:relative;padding:14px 0}
+  .photo-btn{height:48px;background:var(--white);border:1px solid var(--blue-outline);border-radius:6px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;margin:16px 20px 0 20px}
+  .photo-btn span{font-size:16px;font-weight:700;color:var(--blue);letter-spacing:-0.32px}
+  .photo-btn.disabled{border-color:var(--g04);cursor:default;pointer-events:none}
+  .photo-btn.disabled span{color:var(--g15)}
+  .photo-btn.disabled svg{color:var(--g15)!important}
+
+  .photo-thumb{width:120px;height:120px;border-radius:8px;overflow:hidden;position:relative;background:var(--g02);margin:16px 20px 0 20px}
+  .photo-thumb-mini{width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:12px;background:linear-gradient(135deg,#EDEFF1,#DDE0E3)}
+  .photo-thumb-mini .mbar{height:5px;border-radius:2px;background:rgba(255,255,255,.6)}
+  .photo-thumb-remove{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .photo-thumb-remove svg{width:12px;height:12px}
+
+  /* 완료된 이전 스텝 요약 카드 */
+  .summary-stack{padding:20px 20px 24px 20px;display:flex;flex-direction:column;gap:8px}
+  .summary-stack.with-divider{border-bottom:8px solid var(--g02)}
+  .stack-slot{width:100%}
+  .r-body{padding:24px 0 24px 0}
+  .summary-banner{display:flex;align-items:center;gap:16px;height:72px;background:var(--blue-tint-bg);border:1px solid var(--blue-tint-border);border-radius:6px;padding:12px 16px}
+  .summary-banner.skipped{background:var(--g01);border-color:var(--g08)}
+  .summary-check{width:24px;height:24px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--blue)}
+  .summary-banner.skipped .summary-check{color:var(--g30)}
+  .summary-check svg{width:24px;height:24px}
+  .summary-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+  .summary-label{font-size:13px;font-weight:600;color:var(--blue-light);letter-spacing:-0.24px}
+  .summary-banner.skipped .summary-label{color:var(--g30)}
+  .summary-value{font-size:16px;font-weight:700;color:var(--g70);letter-spacing:-0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .summary-banner.skipped .summary-value{color:var(--g30)}
+  .summary-value .sv-skipped{font-weight:500;color:var(--g30)}
+  .summary-edit{width:24px;height:24px;flex-shrink:0;cursor:pointer;color:var(--g60)}
+  .summary-edit svg{width:24px;height:24px}
+
+  .bottom-cta{
+    position:absolute;left:0;right:0;bottom:0;padding:16px 20px 28px 20px;
+    background:linear-gradient(to top,var(--white) 75%,rgba(255,255,255,0));
+    display:flex;gap:10px;z-index:30;
+  }
+  .btn-prev{flex:1;height:56px;border-radius:6px;background:var(--white);border:1px solid var(--g15);color:var(--g60);font-size:18px;font-weight:700;letter-spacing:-0.36px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .cta-btn{flex:1;height:56px;border-radius:6px;background:var(--blue);color:var(--white);font-size:18px;font-weight:700;letter-spacing:-0.36px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s ease}
+  .cta-btn.disabled{background:var(--g08);color:var(--white);pointer-events:none}
+  .cta-btn:active{background:#1656d1}
+
+  /* 바텀시트 공통 */
+  .sheet-overlay{position:absolute;inset:0;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:50}
+  .sheet-overlay.show{opacity:1;pointer-events:auto}
+  .sheet-panel{position:absolute;left:0;right:0;bottom:0;background:var(--white);border-radius:20px 20px 0 0;transform:translateY(100%);transition:transform .3s ease;z-index:51;padding:0 20px 20px 20px}
+  .sheet-overlay.show .sheet-panel{transform:translateY(0)}
+  .sheet-handle-wrap{display:flex;align-items:center;justify-content:center;padding:10px 0 6px 0}
+  .sheet-handle{width:32px;height:3px;border-radius:10px;background:var(--g30)}
+  .sheet-confirm{height:40px;border-radius:6px;background:var(--blue);color:var(--white);font-size:15px;font-weight:700;letter-spacing:-0.3px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-top:16px}
+
+  /* 연식 시트 */
+  .year-list{display:flex;flex-direction:column;align-items:center;padding:4px 0;gap:6px}
+  .year-row{height:36px;width:100%;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:22px;font-weight:700;color:var(--g30);letter-spacing:-0.44px;cursor:pointer;user-select:none}
+  .year-row.selected{background:var(--g02);color:var(--g90);font-size:24px;height:40px}
+
+  /* 구매일자 캘린더 시트 */
+  .cal-header{display:flex;align-items:center;justify-content:space-between;padding:8px 4px 12px 4px}
+  .cal-nav{width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g50);user-select:none}
+  .cal-nav svg{width:20px;height:20px}
+  .cal-title{font-size:18px;font-weight:700;color:var(--g90);letter-spacing:-0.36px}
+  .cal-weekrow{display:grid;grid-template-columns:repeat(7,1fr);padding:4px 0}
+  .cal-weekday{text-align:center;font-size:12px;font-weight:600;color:var(--g50);padding:6px 0}
+  .cal-weekday.sun{color:var(--red)}
+  .cal-weekday.sat{color:var(--blue)}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);row-gap:4px}
+  .cal-cell{height:40px;display:flex;align-items:center;justify-content:center;position:relative;user-select:none}
+  .cal-day{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:15px;font-weight:600;color:var(--g90);cursor:pointer}
+  .cal-day.sun{color:var(--red)}
+  .cal-day.sat{color:var(--blue)}
+  .cal-day.empty{visibility:hidden;cursor:default}
+  .cal-day.selected{background:var(--blue);color:var(--white)!important}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="header-fixed">
+    <div class="statusbar">
+      <span>9:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 18 12" width="16" height="11" fill="#1D1F20"><rect x="0" y="7" width="3" height="5"/><rect x="5" y="4" width="3" height="8"/><rect x="10" y="2" width="3" height="10"/><rect x="15" y="0" width="3" height="12"/></svg>
+        <svg viewBox="0 0 16 12" width="15" height="11" fill="#1D1F20"><path d="M8 3C10.5 3 12.7 4 14.3 5.6L16 3.9C14 1.9 11.2 0.7 8 0.7S2 1.9 0 3.9L1.7 5.6C3.3 4 5.5 3 8 3Z"/><path d="M8 6.5C9.4 6.5 10.7 7 11.7 8L8 12L4.3 8C5.3 7 6.6 6.5 8 6.5Z"/></svg>
+        <svg viewBox="0 0 25 12" width="23" height="11"><rect x="1" y="1" width="20" height="10" rx="2.5" fill="none" stroke="#1D1F20" stroke-width="1"/><rect x="2.5" y="2.5" width="16" height="7" rx="1" fill="#1D1F20"/><rect x="22" y="4" width="2" height="4" rx="1" fill="#1D1F20"/></svg>
+      </div>
+    </div>
+    <div class="appbar" style="justify-content:flex-start">
+      <div class="back" onclick="goBack()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1D1F20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </div>
+      <div class="step" id="stepLabel" style="margin-left:auto">1/4</div>
+    </div>
+  </div>
+
+  <div class="scroll-area" id="scrollArea">
+
+    <!-- STEP 1 -->
+    <div class="step-screen active" id="screen-1">
+      <div class="title-wrap"><h1 class="title">장비 정보를 입력해주세요.</h1></div>
+      <div class="section-head" style="padding:20px 20px 32px 20px">
+        <div class="section-title">운행시간 및 연식</div>
+        <div class="section-desc">장비 등록에 꼭 필요한 정보에요.</div>
+      </div>
+      <div class="req-block" id="reqBlock">
+        <div class="field-stack">
+          <div class="field-group">
+            <div class="field-label-row"><div class="field-label">지금까지 운행시간</div></div>
+            <div class="input-box" id="box-hours">
+              <input type="text" placeholder="0.0" id="input-hours" oninput="onStep1Input()">
+              <span class="unit">시간</span>
+            </div>
+            <div class="helper"><b>소수점 첫째 자리까지만</b> 입력하세요 (예: 423.7)</div>
+          </div>
+          <div class="field-group">
+            <div class="field-label-row"><div class="field-label">연식</div></div>
+            <div class="input-box" id="box-year" onclick="openYearSheet()">
+              <span class="picker-display" id="year-display">연도를 선택하세요</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-screen" id="screen-2">
+      <div class="title-wrap"><h1 class="title">장비 정보를 입력해주세요.</h1></div>
+      <div class="summary-stack with-divider" id="summaryStack-2"></div>
+      <div class="section-head">
+        <div class="section-title">구매처 및 구매일자</div>
+        <div class="section-desc">입력하면 장비를 더 편하게 관리할 수 있어요</div>
+      </div>
+      <div class="field-stack" style="padding:0 0 24px 0">
+        <div class="field-group">
+          <div class="field-label-row">
+            <div class="field-label">구매처</div>
+            <div class="skip-link" id="skip-store" onclick="skipField('store')">구매처를 잘 모르겠어요</div>
+          </div>
+          <div class="input-box" id="box-store"><input type="text" placeholder="구매처를 입력하세요" id="input-store" oninput="onTextFieldInput('store')"></div>
+        </div>
+        <div class="field-group">
+          <div class="field-label-row">
+            <div class="field-label">구매일자</div>
+            <div class="skip-link" id="skip-date" onclick="skipField('date')">구매일자를 잘 모르겠어요</div>
+          </div>
+          <div class="input-box" id="box-date" onclick="openDateSheet()">
+            <span class="picker-display" id="date-display">구매 일자를 선택하세요</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step-screen" id="screen-3">
+      <div class="title-wrap"><h1 class="title">장비 정보를 입력해주세요.</h1></div>
+      <div class="summary-stack with-divider" id="summaryStack-3"></div>
+      <div class="section-head">
+        <div class="section-title">제조 정보</div>
+        <div class="section-desc">직접 입력하거나, 형식 표지판(명판) 사진을 첨부해주세요.</div>
+      </div>
+      <div class="field-group">
+        <div class="field-label-row">
+          <div class="field-label">제조번호</div>
+          <div class="skip-link" id="skip-serial" onclick="skipField('serial')">제조 번호를 잘 모르겠어요</div>
+        </div>
+        <div class="input-box" id="box-serial"><input type="text" placeholder="제조번호를 입력하세요" id="input-serial" oninput="onTextFieldInput('serial')"></div>
+      </div>
+      <div class="photo-guide">
+        <div class="photo-guide-title">농업기계 형식표지판을 찾아 촬영해주세요.</div>
+        <div class="guide-frame">
+          <div class="plate-card">
+            <div class="bar-row"><div class="bar" style="width:50px"></div><div class="bar" style="width:140px"></div></div>
+            <div class="bar-row"><div class="bar" style="width:50px"></div><div class="bar" style="width:88px"></div></div>
+            <div class="highlight-row">
+              <span class="highlight-label">제조번호</span>
+              <span class="highlight-value">2306001788</span>
+              <div class="tooltip">이 부분을 촬영해주세요</div>
+            </div>
+            <div class="bar-row"><div class="bar" style="width:50px"></div><div class="bar" style="width:112px"></div></div>
+            <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+          </div>
+        </div>
+      </div>
+      <div class="photo-btn" id="photoBtn" onclick="togglePhoto()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" style="color:var(--blue)"><path d="M12 5v14M5 12h14"/></svg>
+        <span id="photoBtnText">사진을 추가해주세요.</span>
+      </div>
+      <div class="photo-thumb" id="photoThumb" style="display:none">
+        <div class="photo-thumb-mini">
+          <div class="mbar" style="width:60%"></div>
+          <div class="mbar" style="width:80%"></div>
+          <div class="mbar" style="width:45%"></div>
+          <div class="mbar" style="width:70%"></div>
+        </div>
+        <div class="photo-thumb-remove" onclick="removePhoto()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </div>
+      </div>
+      <div style="height:24px"></div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step-screen" id="screen-4">
+      <div class="title-wrap"><h1 class="title">장비 정보를 입력해주세요.</h1></div>
+      <div class="summary-stack" id="summaryStack-4">
+
+        <div class="stack-slot" id="slot-1">
+          <div id="card-1"></div>
+          <div id="r-body-1" class="r-body" style="display:none">
+            <div class="section-head" style="padding:0 0 32px 0">
+              <div class="section-title">운행시간 및 연식</div>
+              <div class="section-desc">장비 등록에 꼭 필요한 정보에요.</div>
+            </div>
+            <div class="field-group" style="padding:0">
+              <div class="field-label-row"><div class="field-label">지금까지 운행시간</div></div>
+              <div class="input-box" id="r-box-hours">
+                <input type="text" placeholder="0.0" id="r-input-hours" oninput="rHoursInput()">
+                <span class="unit">시간</span>
+              </div>
+            </div>
+            <div class="field-group" style="padding:0;margin-top:16px">
+              <div class="field-label-row"><div class="field-label">연식</div></div>
+              <div class="input-box" id="r-box-year" onclick="openYearSheet('review')">
+                <span class="picker-display" id="r-year-display">연도를 선택하세요</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stack-slot" id="slot-2">
+          <div id="card-2"></div>
+          <div id="r-body-2" class="r-body" style="display:none">
+            <div class="section-head" style="padding:0 0 32px 0">
+              <div class="section-title">구매처 및 구매일자</div>
+              <div class="section-desc">입력하면 장비를 더 편하게 관리 할 수 있어요.</div>
+            </div>
+            <div class="field-group" style="padding:0">
+              <div class="field-label-row">
+                <div class="field-label">구매처</div>
+                <div class="skip-link" id="r-skip-store" onclick="rSkipField('store')">구매처를 잘 모르겠어요</div>
+              </div>
+              <div class="input-box" id="r-box-store"><input type="text" placeholder="구매처를 입력하세요" id="r-input-store" oninput="rTextInput('store')"></div>
+            </div>
+            <div class="field-group" style="padding:0;margin-top:16px">
+              <div class="field-label-row">
+                <div class="field-label">구매일자</div>
+                <div class="skip-link" id="r-skip-date" onclick="rSkipField('date')">구매일자를 잘 모르겠어요</div>
+              </div>
+              <div class="input-box" id="r-box-date" onclick="openDateSheet('review')">
+                <span class="picker-display" id="r-date-display">구매 일자를 선택하세요</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stack-slot" id="slot-3">
+          <div id="card-3"></div>
+          <div id="r-body-3" class="r-body" style="display:none">
+            <div class="section-head" style="padding:0 0 32px 0">
+              <div class="section-title">제조 정보</div>
+              <div class="section-desc">직접 입력하거나, 형식 표지판(명판) 사진을 첨부해주세요.</div>
+            </div>
+            <div class="field-group" style="padding:0">
+              <div class="field-label-row">
+                <div class="field-label">제조번호</div>
+                <div class="skip-link" id="r-skip-serial" onclick="rSkipField('serial')">제조 번호를 잘 모르겠어요</div>
+              </div>
+              <div class="input-box" id="r-box-serial"><input type="text" placeholder="제조번호를 입력하세요" id="r-input-serial" oninput="rTextInput('serial')"></div>
+            </div>
+            <div class="photo-guide" style="margin:16px 0 0 0">
+              <div class="photo-guide-title">농업기계 형식표지판을 찾아 촬영해주세요.</div>
+              <div class="guide-frame">
+                <div class="plate-card">
+                  <div class="bar-row"><div class="bar" style="width:50px"></div><div class="bar" style="width:140px"></div></div>
+                  <div class="bar-row"><div class="bar" style="width:50px"></div><div class="bar" style="width:88px"></div></div>
+                  <div class="highlight-row">
+                    <span class="highlight-label">제조번호</span>
+                    <span class="highlight-value">2306001788</span>
+                    <div class="tooltip">이 부분을 촬영해주세요</div>
+                  </div>
+                  <div class="bar-row"><div class="bar" style="width:50px"></div><div class="bar" style="width:112px"></div></div>
+                  <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+                </div>
+              </div>
+            </div>
+            <div class="photo-btn" id="r-photoBtn" onclick="rTogglePhoto()" style="margin:16px 0 0 0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" style="color:var(--blue)"><path d="M12 5v14M5 12h14"/></svg>
+              <span id="r-photoBtnText">사진을 추가해주세요.</span>
+            </div>
+            <div class="photo-thumb" id="r-photoThumb" style="display:none;margin-left:0;margin-right:0">
+              <div class="photo-thumb-mini">
+                <div class="mbar" style="width:60%"></div>
+                <div class="mbar" style="width:80%"></div>
+                <div class="mbar" style="width:45%"></div>
+                <div class="mbar" style="width:70%"></div>
+              </div>
+              <div class="photo-thumb-remove" onclick="rRemovePhoto()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stack-slot" id="slot-4">
+          <div id="card-4"></div>
+          <div id="r-body-4" class="r-body" style="display:none">
+            <div class="section-head" style="padding:0 0 32px 0">
+              <div class="section-title">추가 정보 <span style="color:var(--g30);font-size:16px;font-weight:500">(선택)</span></div>
+              <div class="section-desc">별칭을 입력하지 않으면 장비 구분 값이 자동으로 입력돼요</div>
+            </div>
+            <div class="field-group" style="padding:0">
+              <div class="field-label-row"><div class="field-label">마력</div></div>
+              <div class="input-box" id="r-box-hp"><input type="text" placeholder="마력을 입력하세요" id="r-input-hp" oninput="rHpNickInput('hp')"></div>
+            </div>
+            <div class="field-group" style="padding:0;margin-top:16px">
+              <div class="field-label-row"><div class="field-label">별칭</div></div>
+              <div class="input-box" id="r-box-nick"><input type="text" placeholder="장비 별칭을 입력하세요" id="r-input-nick" oninput="rHpNickInput('nick')"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div style="height:24px"></div>
+    </div>
+
+  </div>
+
+  <div class="bottom-cta" id="bottomCta"></div>
+
+  <!-- 연식 시트 -->
+  <div class="sheet-overlay" id="yearSheetOverlay" onclick="closeYearSheet()">
+    <div class="sheet-panel" onclick="event.stopPropagation()">
+      <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+      <div class="year-list" id="yearList"></div>
+      <div class="sheet-confirm" onclick="confirmYear()">확인</div>
+    </div>
+  </div>
+
+  <!-- 구매일자 캘린더 시트 -->
+  <div class="sheet-overlay" id="dateSheetOverlay" onclick="closeDateSheet()">
+    <div class="sheet-panel" onclick="event.stopPropagation()">
+      <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+      <div class="cal-header">
+        <div class="cal-nav" onclick="calShiftMonth(-1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </div>
+        <div class="cal-title" id="calTitle">2026년 3월</div>
+        <div class="cal-nav" onclick="calShiftMonth(1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </div>
+      <div class="cal-weekrow">
+        <div class="cal-weekday sun">일</div><div class="cal-weekday">월</div><div class="cal-weekday">화</div>
+        <div class="cal-weekday">수</div><div class="cal-weekday">목</div><div class="cal-weekday">금</div>
+        <div class="cal-weekday sat">토</div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="sheet-confirm" onclick="confirmDate()">확인</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== 상태 ===== */
+let currentStep = 1;
+const data = {
+  hours:'', year:'',
+  store:'', storeSkipped:false,
+  date:'', dateSkipped:false,
+  serial:'', serialSkipped:false, photoDone:false,
+  hp:'', nick:''
+};
+
+/* ===== 화면 전환 ===== */
+function showStep(n){
+  currentStep = n;
+  document.querySelectorAll('.step-screen').forEach(el => el.classList.remove('active'));
+  document.getElementById('screen-'+n).classList.add('active');
+  document.getElementById('stepLabel').textContent = n + '/4';
+  document.getElementById('scrollArea').scrollTop = 0;
+  prefillStep(n);
+  if(n === 4){
+    openReviewSection = 4; // 4단계 최초 진입 시 "추가 정보"는 기본으로 펼쳐진 채 시작
+    rPrefill(4);
+  }
+  renderSummaryStack(n);
+  renderFooter();
+}
+
+function goBack(){
+  if(currentStep > 1) showStep(currentStep - 1);
+}
+
+function goNext(){
+  if(currentStep < 4) showStep(currentStep + 1);
+}
+
+/* ===== 프리필: 재방문 시 이전에 입력한 값 복원 ===== */
+function prefillStep(n){
+  if(n === 1){
+    document.getElementById('input-hours').value = data.hours;
+    setYearDisplay(data.year);
+    styleStep1();
+  }
+  if(n === 2){
+    document.getElementById('input-store').value = data.store;
+    document.getElementById('input-store').placeholder = data.storeSkipped ? '나중에 입력' : '구매처를 입력하세요';
+    styleTextField('store');
+    setDateDisplay();
+    document.getElementById('skip-date').style.visibility = data.dateSkipped || data.date ? 'hidden' : 'visible';
+    document.getElementById('skip-store').style.visibility = data.storeSkipped || data.store ? 'hidden' : 'visible';
+  }
+  if(n === 3){
+    document.getElementById('input-serial').value = data.serial;
+    document.getElementById('input-serial').placeholder = data.serialSkipped ? '나중에 입력' : '제조번호를 입력하세요';
+    styleTextField('serial');
+    document.getElementById('skip-serial').style.visibility = data.serialSkipped || data.serial ? 'hidden' : 'visible';
+    setPhotoUI();
+  }
+  if(n === 4){
+    // 4단계 필드 프리필은 showStep()에서 rPrefill()로 처리
+  }
+}
+
+function styleStep1(){
+  const y = data.year, h = document.getElementById('input-hours').value.trim();
+  styleTextField('hours');
+  document.getElementById('box-year').classList.toggle('filled', !!y);
+}
+
+function styleTextField(key){
+  const box = document.getElementById('box-'+key);
+  const val = document.getElementById('input-'+key).value.trim();
+  box.classList.toggle('filled', !!val);
+}
+
+/* ===== STEP 1: 운행시간/연식 ===== */
+function onStep1Input(){
+  data.hours = document.getElementById('input-hours').value.trim();
+  styleStep1();
+  renderFooter();
+}
+
+function setYearDisplay(val){
+  const el = document.getElementById('year-display');
+  if(val){ el.textContent = val; el.classList.add('has-value'); }
+  else { el.textContent = '연도를 선택하세요'; el.classList.remove('has-value'); }
+}
+
+/* ===== 일반 텍스트 필드 입력 (구매처/제조번호/별칭) ===== */
+function onTextFieldInput(key){
+  data[key] = document.getElementById('input-'+key).value.trim();
+  styleTextField(key);
+  const skip = document.getElementById('skip-'+key);
+  if(skip) skip.style.visibility = data[key] ? 'hidden' : 'visible';
+  if(key === 'store') data.storeSkipped = false;
+  if(key === 'serial') data.serialSkipped = false;
+  renderFooter();
+}
+
+function skipField(key){
+  data[key+'Skipped'] = true;
+  if(key === 'date'){
+    data.date = '';
+    setDateDisplay();
+    document.getElementById('skip-date').style.visibility = 'hidden';
+    renderFooter();
+    return;
+  }
+  document.getElementById('input-'+key).value = '';
+  data[key] = '';
+  document.getElementById('input-'+key).placeholder = '나중에 입력';
+  styleTextField(key);
+  document.getElementById('skip-'+key).style.visibility = 'hidden';
+  renderFooter();
+}
+
+function setPhotoUI(){
+  const btn = document.getElementById('photoBtn');
+  const thumb = document.getElementById('photoThumb');
+  btn.classList.toggle('disabled', data.photoDone);
+  thumb.style.display = data.photoDone ? 'block' : 'none';
+}
+
+function togglePhoto(){
+  if(data.photoDone) return; // 이미 등록됨 — 버튼 비활성, X로만 제거 가능
+  data.photoDone = true;
+  setPhotoUI();
+  renderFooter();
+}
+
+function removePhoto(){
+  data.photoDone = false;
+  setPhotoUI();
+  renderFooter();
+}
+
+/* ===== 완료된 이전 스텝 요약 카드 ===== */
+function summaryHTML1(){
+  const parts = [];
+  if(data.hours) parts.push(data.hours+'시간');
+  if(data.year) parts.push(data.year);
+  return {label:'운행시간 및 연식', value: parts.join(' · '), skipped:false};
+}
+function summaryHTML2(){
+  const storePart = data.store ? data.store : '<span class="sv-skipped">나중에 입력</span>';
+  const datePart = data.date ? data.date : '<span class="sv-skipped">나중에 입력</span>';
+  const allEmpty = !data.store && !data.date;
+  return {label:'구매처 및 구매일자', value: storePart+' · '+datePart, skipped: allEmpty};
+}
+function summaryHTML3(){
+  const parts = [];
+  if(data.serial) parts.push(data.serial);
+  if(data.photoDone) parts.push('사진 등록');
+  const empty = parts.length === 0;
+  return {label:'제조 정보', value: empty ? '<span class="sv-skipped">나중에 입력</span>' : parts.join(' · '), skipped: empty};
+}
+function summaryHTML4(){
+  const hpPart = data.hp ? data.hp+'마력' : '<span class="sv-skipped">나중에 입력</span>';
+  const nickPart = data.nick ? data.nick : '<span class="sv-skipped">나중에 입력</span>';
+  const allEmpty = !data.hp && !data.nick;
+  return {label:'추가정보 (선택)', value: allEmpty ? '나중에 입력' : hpPart+' · '+nickPart, skipped: allEmpty};
+}
+
+let openReviewSection = null; // 4단계 전용: 지금 인라인으로 펼쳐진 섹션(1~4) 또는 null
+const summaryMap = {1:summaryHTML1, 2:summaryHTML2, 3:summaryHTML3, 4:summaryHTML4};
+
+function cardInnerHTML(s, editAction){
+  const d = summaryMap[s]();
+  return `
+    <div class="summary-banner${d.skipped?' skipped':''}">
+      <div class="summary-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.2928 5.29314C20.6833 4.90261 21.3163 4.90261 21.7068 5.29314C22.0973 5.68367 22.0973 6.3167 21.7068 6.7072L9.70683 18.7072C9.31632 19.0975 8.68322 19.0976 8.29277 18.7072L2.29277 12.7072C1.90233 12.3168 1.90249 11.6837 2.29277 11.2931C2.6833 10.9026 3.31631 10.9026 3.70683 11.2931L8.9998 16.5861L20.2928 5.29314Z" fill="currentColor"/></svg></div>
+      <div class="summary-text">
+        <div class="summary-label">${d.label}</div>
+        <div class="summary-value">${d.value}</div>
+      </div>
+      <div class="summary-edit" onclick="${editAction}"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.7993 6.98971C21.1896 7.38025 21.1897 8.01346 20.7993 8.40392L8.55128 20.6519C8.37226 20.8309 8.13171 20.9359 7.8787 20.9447L4.2168 21.0711C3.93987 21.0806 3.67115 20.9742 3.47517 20.7783C3.27921 20.5823 3.17288 20.3136 3.18238 20.0367L3.30875 16.3748C3.31752 16.1217 3.42247 15.8812 3.60153 15.7022L15.8495 3.45418C16.2401 3.06365 16.8732 3.06365 17.2637 3.45418L20.7993 6.98971ZM13.7282 8.40392L5.29541 16.8367L5.21945 19.034L7.41673 18.958L15.8495 10.5252L13.7282 8.40392ZM15.1424 6.98971L17.2637 9.11103L18.678 7.69682L16.5566 5.5755L15.1424 6.98971Z" fill="currentColor"/></svg></div>
+    </div>`;
+}
+
+function renderSummaryStack(n){
+  const stack = document.getElementById('summaryStack-'+n);
+  if(!stack) return;
+
+  if(n !== 4){
+    // 2, 3단계: 이전 완료 스텝 카드만 표시, 펜 = 해당 화면으로 이동
+    const builders = {2:[1], 3:[1,2]};
+    const steps = builders[n] || [];
+    stack.innerHTML = steps.map(s => cardInnerHTML(s, `showStep(${s})`)).join('');
+    return;
+  }
+
+  // 4단계: 슬롯 기반 아코디언 (1~3, 카드 ↔ 인라인 폼 토글, 순서 항상 고정)
+  [1,2,3,4].forEach(s => {
+    const cardEl = document.getElementById('card-'+s);
+    const bodyEl = document.getElementById('r-body-'+s);
+    if(openReviewSection === s){
+      cardEl.style.display = 'none';
+      bodyEl.style.display = 'block';
+    } else {
+      bodyEl.style.display = 'none';
+      cardEl.style.display = 'block';
+      cardEl.innerHTML = cardInnerHTML(s, `rToggle(${s})`);
+    }
+  });
+}
+
+/* ===== 4단계 인라인 수정 ===== */
+function rToggle(s){
+  openReviewSection = (openReviewSection === s) ? null : s;
+  if(openReviewSection === s) rPrefill(s);
+  renderSummaryStack(4);
+}
+
+function rPrefill(s){
+  if(s === 1){
+    document.getElementById('r-input-hours').value = data.hours;
+    document.getElementById('r-box-hours').classList.toggle('filled', !!data.hours);
+    setRYearDisplay();
+    document.getElementById('r-box-year').classList.toggle('filled', !!data.year);
+  }
+  if(s === 2){
+    document.getElementById('r-input-store').value = data.store;
+    document.getElementById('r-input-store').placeholder = data.storeSkipped ? '나중에 입력' : '구매처를 입력하세요';
+    document.getElementById('r-box-store').classList.toggle('filled', !!data.store);
+    document.getElementById('r-skip-store').style.visibility = (data.store || data.storeSkipped) ? 'hidden' : 'visible';
+    setRDateDisplay();
+    document.getElementById('r-skip-date').style.visibility = (data.date || data.dateSkipped) ? 'hidden' : 'visible';
+  }
+  if(s === 3){
+    document.getElementById('r-input-serial').value = data.serial;
+    document.getElementById('r-input-serial').placeholder = data.serialSkipped ? '나중에 입력' : '제조번호를 입력하세요';
+    document.getElementById('r-box-serial').classList.toggle('filled', !!data.serial);
+    document.getElementById('r-skip-serial').style.visibility = (data.serial || data.serialSkipped) ? 'hidden' : 'visible';
+    setRPhotoUI();
+  }
+  if(s === 4){
+    document.getElementById('r-input-hp').value = data.hp;
+    document.getElementById('r-box-hp').classList.toggle('filled', !!data.hp);
+    document.getElementById('r-input-nick').value = data.nick;
+    document.getElementById('r-box-nick').classList.toggle('filled', !!data.nick);
+  }
+}
+
+function rHpNickInput(key){
+  const val = document.getElementById('r-input-'+key).value.trim();
+  data[key] = val;
+  document.getElementById('r-box-'+key).classList.toggle('filled', !!val);
+}
+
+
+function rHoursInput(){
+  data.hours = document.getElementById('r-input-hours').value.trim();
+  document.getElementById('r-box-hours').classList.toggle('filled', !!data.hours);
+}
+
+function rTextInput(key){
+  const val = document.getElementById('r-input-'+key).value.trim();
+  data[key] = val;
+  if(key === 'store') data.storeSkipped = false;
+  if(key === 'serial') data.serialSkipped = false;
+  document.getElementById('r-box-'+key).classList.toggle('filled', !!val);
+  document.getElementById('r-skip-'+key).style.visibility = val ? 'hidden' : 'visible';
+}
+
+
+function rSkipField(key){
+  data[key+'Skipped'] = true;
+  if(key === 'date'){
+    data.date = '';
+    setRDateDisplay();
+    document.getElementById('r-skip-date').style.visibility = 'hidden';
+    return;
+  }
+  document.getElementById('r-input-'+key).value = '';
+  data[key] = '';
+  document.getElementById('r-input-'+key).placeholder = '나중에 입력';
+  document.getElementById('r-box-'+key).classList.remove('filled');
+  document.getElementById('r-skip-'+key).style.visibility = 'hidden';
+}
+
+function setRPhotoUI(){
+  const btn = document.getElementById('r-photoBtn');
+  const thumb = document.getElementById('r-photoThumb');
+  btn.classList.toggle('disabled', data.photoDone);
+  thumb.style.display = data.photoDone ? 'block' : 'none';
+}
+
+function rTogglePhoto(){
+  if(data.photoDone) return;
+  data.photoDone = true;
+  setRPhotoUI();
+}
+
+function rRemovePhoto(){
+  data.photoDone = false;
+  setRPhotoUI();
+}
+
+function setRYearDisplay(){
+  const el = document.getElementById('r-year-display');
+  if(data.year){ el.textContent = data.year; el.classList.add('has-value'); }
+  else { el.textContent = '연도를 선택하세요'; el.classList.remove('has-value'); }
+}
+
+function setRDateDisplay(){
+  const el = document.getElementById('r-date-display');
+  if(data.date){ el.textContent = data.date; el.classList.add('has-value'); }
+  else if(data.dateSkipped){ el.textContent = '나중에 입력'; el.classList.remove('has-value'); }
+  else { el.textContent = '구매 일자를 선택하세요'; el.classList.remove('has-value'); }
+}
+
+/* ===== 하단 버튼 ===== */
+function renderFooter(){
+  const footer = document.getElementById('bottomCta');
+  if(currentStep === 1){
+    const enabled = data.hours && data.year;
+    footer.innerHTML = `<div class="cta-btn${enabled?'':' disabled'}" onclick="goNext()">다음</div>`;
+  } else if(currentStep === 2){
+    const enabled = (data.store || data.storeSkipped) && (data.date || data.dateSkipped);
+    footer.innerHTML = `<div class="cta-btn${enabled?'':' disabled'}" onclick="goNext()">다음</div>`;
+  } else if(currentStep === 3){
+    const enabled = !!data.serial || data.serialSkipped || data.photoDone;
+    footer.innerHTML = `<div class="cta-btn${enabled?'':' disabled'}" onclick="goNext()">다음</div>`;
+  } else if(currentStep === 4){
+    footer.innerHTML = `
+      <div class="btn-prev" onclick="goBack()">이전</div>
+      <div class="cta-btn" onclick="onSubmit()">등록하기</div>`;
+  } else {
+    footer.innerHTML = `<div class="cta-btn" onclick="goNext()">다음</div>`;
+  }
+}
+
+function onSubmit(){
+  alert('등록되었습니다. (프로토타입)');
+}
+
+/* ===== 연식 바텀시트 ===== */
+const yearOptions = [2024, 2025, 2026, 2027, 2028];
+let tempYear = 2026;
+let yearSheetContext = 'main';
+
+function renderYearList(){
+  const list = document.getElementById('yearList');
+  list.innerHTML = yearOptions.map(y =>
+    `<div class="year-row${y===tempYear?' selected':''}" onclick="pickYear(${y})">${y}년</div>`
+  ).join('');
+}
+function pickYear(y){ tempYear = y; renderYearList(); }
+
+function openYearSheet(context){
+  yearSheetContext = context || 'main';
+  if(data.year){
+    const num = parseInt(data.year, 10);
+    if(yearOptions.includes(num)) tempYear = num;
+  }
+  renderYearList();
+  document.getElementById('yearSheetOverlay').classList.add('show');
+}
+function closeYearSheet(){
+  document.getElementById('yearSheetOverlay').classList.remove('show');
+}
+function confirmYear(){
+  data.year = tempYear + '년';
+  if(yearSheetContext === 'review'){
+    setRYearDisplay();
+    document.getElementById('r-box-year').classList.add('filled');
+  } else {
+    setYearDisplay(data.year);
+    styleStep1();
+  }
+  document.getElementById('yearSheetOverlay').classList.remove('show');
+  renderFooter();
+}
+
+/* ===== 구매일자 캘린더 바텀시트 ===== */
+let calYear = 2026, calMonth = 2; // 0-indexed month (2 = 3월)
+let tempDate = null; // {y,m,d}
+let dateSheetContext = 'main';
+
+function setDateDisplay(){
+  const el = document.getElementById('date-display');
+  if(data.date){
+    el.textContent = data.date;
+    el.classList.add('has-value');
+  } else if(data.dateSkipped){
+    el.textContent = '나중에 입력';
+    el.classList.remove('has-value');
+  } else {
+    el.textContent = '구매 일자를 선택하세요';
+    el.classList.remove('has-value');
+  }
+}
+
+function renderCalendar(){
+  document.getElementById('calTitle').textContent = calYear + '년 ' + (calMonth+1) + '월';
+  const first = new Date(calYear, calMonth, 1);
+  const startWeekday = first.getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const grid = document.getElementById('calGrid');
+  let html = '';
+  for(let i=0;i<startWeekday;i++){
+    html += `<div class="cal-cell"><div class="cal-day empty"></div></div>`;
+  }
+  for(let d=1; d<=daysInMonth; d++){
+    const weekday = (startWeekday + d - 1) % 7;
+    const isSun = weekday === 0, isSat = weekday === 6;
+    const isSelected = tempDate && tempDate.y===calYear && tempDate.m===calMonth && tempDate.d===d;
+    const cls = 'cal-day' + (isSun?' sun':'') + (isSat?' sat':'') + (isSelected?' selected':'');
+    html += `<div class="cal-cell"><div class="${cls}" onclick="pickDate(${d})">${d}</div></div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function pickDate(d){
+  tempDate = {y:calYear, m:calMonth, d:d};
+  renderCalendar();
+}
+
+function calShiftMonth(delta){
+  calMonth += delta;
+  if(calMonth < 0){ calMonth = 11; calYear -= 1; }
+  if(calMonth > 11){ calMonth = 0; calYear += 1; }
+  renderCalendar();
+}
+
+function openDateSheet(context){
+  dateSheetContext = context || 'main';
+  if(data.date){
+    const m = data.date.match(/(\d{4})\.(\d{2})\.(\d{2})/);
+    if(m){
+      calYear = parseInt(m[1],10);
+      calMonth = parseInt(m[2],10) - 1;
+      tempDate = {y:calYear, m:calMonth, d:parseInt(m[3],10)};
+    }
+  } else {
+    tempDate = null;
+  }
+  renderCalendar();
+  document.getElementById('dateSheetOverlay').classList.add('show');
+}
+function closeDateSheet(){
+  document.getElementById('dateSheetOverlay').classList.remove('show');
+}
+function confirmDate(){
+  if(tempDate){
+    const mm = String(tempDate.m+1).padStart(2,'0');
+    const dd = String(tempDate.d).padStart(2,'0');
+    data.date = `${tempDate.y}.${mm}.${dd}`;
+    data.dateSkipped = false;
+    if(dateSheetContext === 'review'){
+      setRDateDisplay();
+      document.getElementById('r-skip-date').style.visibility = 'hidden';
+    } else {
+      setDateDisplay();
+      document.getElementById('skip-date').style.visibility = 'hidden';
+    }
+  }
+  document.getElementById('dateSheetOverlay').classList.remove('show');
+  renderFooter();
+}
+
+/* ===== 초기화 ===== */
+renderFooter();
+
+/* ===== 인풋 Focus/Typing 상태 + 클리어(X) 버튼 공통 처리 =====
+   - 포커스 시: 파란 보더로 전환 (Filled 상태여도 Typing으로 복귀)
+   - 값이 있는 채로 포커스 중일 때만 X 버튼 노출
+   - X 클릭: 값 비우고 포커스 유지, 기존 oninput 핸들러 재사용을 위해 input 이벤트 디스패치 */
+document.querySelectorAll('.input-box input[type="text"]').forEach(input => {
+  const box = input.closest('.input-box');
+  const clearBtn = document.createElement('div');
+  clearBtn.className = 'clear-btn';
+  clearBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+  box.appendChild(clearBtn);
+
+  function syncClear(){
+    const active = document.activeElement === input && input.value.length > 0;
+    clearBtn.classList.toggle('show', active);
+    const unit = box.querySelector('.unit');
+    if(unit) unit.style.display = active ? 'none' : '';
+  }
+
+  input.addEventListener('focus', () => {
+    box.classList.add('focused-live');
+    syncClear();
+  });
+  input.addEventListener('blur', () => {
+    box.classList.remove('focused-live');
+    clearBtn.classList.remove('show');
+    const unit = box.querySelector('.unit');
+    if(unit) unit.style.display = '';
+  });
+  input.addEventListener('input', syncClear);
+
+  input.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      input.blur(); // 엔터 = 입력 완료, 키보드 내려가며 blur 로직(완료 판정/자동닫힘) 그대로 이어짐
+    }
+  });
+
+  // pointerdown 단계에서 기본 동작을 막아 인풋이 먼저 blur되는 것을 방지 —
+  // 그래야 X가 blur 핸들러에 의해 숨겨지기 전에 click이 정상적으로 도달함 (마우스/터치 공통)
+  clearBtn.addEventListener('pointerdown', (e) => e.preventDefault());
+
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
+    input.focus();
+    input.dispatchEvent(new Event('input', {bubbles:true}));
+    syncClear();
+  });
+});
+</script>
+
+</body>
+</html>
