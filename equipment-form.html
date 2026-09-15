@@ -108,11 +108,11 @@
   .corner.bl{bottom:0;left:0;border-right:none;border-top:none}
   .corner.br{bottom:0;right:0;border-left:none;border-top:none}
   .guide-frame{position:relative;padding:14px 0}
-  .photo-btn{height:48px;background:var(--white);border:1px solid var(--blue-outline);border-radius:6px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;margin:16px 20px 0 20px}
+  .photo-btn{height:48px;background:var(--white);border:1px solid var(--blue-outline);border-radius:6px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;margin:16px 20px 0 20px;color:var(--blue)}
   .photo-btn span{font-size:16px;font-weight:700;color:var(--blue);letter-spacing:-0.32px}
-  .photo-btn.disabled{border-color:var(--g04);cursor:default;pointer-events:none}
+  /* 명판 사진 등록 완료 시: 인풋창과 같은 톤(연회색 배경/보더)으로 비활성화, 아이콘도 함께 회색 처리 */
+  .photo-btn.disabled{border-color:var(--g04);background:var(--white);color:var(--g15);cursor:default;pointer-events:none}
   .photo-btn.disabled span{color:var(--g15)}
-  .photo-btn.disabled svg{color:var(--g15)!important}
 
   .photo-thumb{width:120px;height:120px;border-radius:8px;overflow:hidden;position:relative;background:var(--g02);margin:16px 20px 0 20px}
   .photo-thumb-mini{width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:12px;background:linear-gradient(135deg,#EDEFF1,#DDE0E3)}
@@ -120,27 +120,15 @@
   .photo-thumb-remove{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;cursor:pointer}
   .photo-thumb-remove svg{width:12px;height:12px}
 
-  /* 제조정보: 독립 액션 두 가지 (명판 사진 등록 / 제조번호 직접 입력) */
-  .choice-btn{
-    height:64px;background:var(--g02);border:1px solid transparent;border-radius:6px;
-    display:flex;align-items:center;gap:12px;padding:0 16px;cursor:pointer;
-  }
-  .choice-icon{width:40px;height:40px;border-radius:50%;background:var(--white);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--g70)}
-  .choice-text{font-size:16px;font-weight:600;color:var(--g70);letter-spacing:-0.32px}
-
-  /* 명판 사진 등록: 등록 완료 시 체크 아이콘 + 블루톤 (보더 없음, 완료 요약카드와 같은 언어) */
-  .choice-btn.checked{background:var(--blue-tint-bg)}
-  .choice-btn.checked .choice-icon{color:var(--blue)}
-  .choice-btn.checked .choice-text{color:var(--blue);font-weight:700}
-
-  /* 제조번호 직접 입력: 클릭 시 같은 박스 안에 라벨+인풋을 묶어서 펼침 (보더는 장식이 아니라 그룹핑 목적) */
-  .choice-btn.manual-choice{height:auto;flex-direction:column;align-items:stretch;padding:12px 16px}
-  .choice-btn.manual-choice .choice-row{display:flex;align-items:center;gap:12px;height:40px}
-  .manual-input-wrap{display:none;margin-top:8px}
-  .choice-btn.manual-choice.expanded{background:var(--blue-tint-bg);border-color:var(--blue-tint-border)}
-  .choice-btn.manual-choice.expanded .manual-input-wrap{display:block}
-  .choice-btn.manual-choice.expanded .choice-icon{color:var(--blue)}
-  .choice-btn.manual-choice.expanded .choice-text{color:var(--blue);font-weight:700}
+  /* 명판 사진 촬영 가이드: 기본 접힘, 클릭 시 펼침/접힘 토글 */
+  .guide-toggle{display:flex;align-items:center;gap:12px;height:48px;cursor:pointer;border-bottom:1px solid var(--g08);margin-top:24px}
+  .guide-toggle-icon{width:32px;height:32px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .guide-toggle-text{flex:1;font-size:15px;font-weight:600;color:var(--g80);letter-spacing:-0.3px}
+  .guide-chevron{color:var(--g50);flex-shrink:0;transition:transform .2s ease}
+  .guide-toggle.open .guide-chevron{transform:rotate(180deg)}
+  .guide-content{display:none;padding-top:16px}
+  .guide-content.open{display:block}
+  .guide-caption{font-size:13px;font-weight:600;color:var(--blue);letter-spacing:-0.26px}
 
   /* 완료된 이전 스텝 요약 카드 */
   .summary-stack{padding:20px 20px 24px 20px;display:flex;flex-direction:column;gap:8px}
@@ -160,6 +148,12 @@
   .summary-value .sv-skipped{font-weight:500;color:var(--g30)}
   .summary-edit{width:24px;height:24px;flex-shrink:0;cursor:pointer;color:var(--g60)}
   .summary-edit svg{width:24px;height:24px}
+
+  /* 필수 정보(운행시간/연식) 미완료 상태 - 카드가 접혀있을 때 파란 완료 배너 대신 노출 */
+  .summary-banner.error{background:#FCEAEA;border-color:#F3B9B9}
+  .summary-banner.error .summary-label{color:#E5484D}
+  .summary-banner.error .summary-value{color:#D92D2D}
+  .summary-check.error-icon{color:#fff;background:#E5484D;border-radius:50%}
 
   .bottom-cta{
     position:absolute;left:0;right:0;bottom:0;padding:16px 20px 28px 20px;
@@ -303,31 +297,20 @@
       <div class="section-head" id="serialSectionHead">
         <div class="field-label-row">
           <div class="section-title">제조 정보</div>
-          <div class="skip-link" id="skip-serial" onclick="skipField('serial')">건너뛸게요</div>
         </div>
-        <div class="section-desc">제조번호를 등록해주세요.</div>
+        <div class="section-desc">제조번호 및 명판 사진을 등록해주세요.</div>
       </div>
 
       <div class="field-group" style="gap:8px">
-        <!-- 제조번호 직접 입력: 클릭 시 같은 박스 안에 인풋이 펼쳐짐 (한 번 펼쳐지면 접는 기능 없음) -->
-        <div class="choice-btn manual-choice" id="manualBox" onclick="expandManualInput()">
-          <div class="choice-row">
-            <div class="choice-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-            </div>
-            <span class="choice-text">제조번호 직접 입력</span>
-          </div>
-          <div class="manual-input-wrap" id="manualInputWrap">
-            <div class="input-box" id="box-serial" onclick="event.stopPropagation()"><input type="text" placeholder="제조번호를 입력하세요" id="input-serial" oninput="onTextFieldInput('serial')"></div>
-          </div>
+        <div class="field-label-row">
+          <div class="field-label">제조번호</div>
+          <div class="skip-link" id="skip-serial" onclick="skipField('serial')">건너뛸게요</div>
         </div>
+        <div class="input-box" id="box-serial"><input type="text" placeholder="제조번호를 입력하세요" id="input-serial" oninput="onTextFieldInput('serial')"></div>
 
-        <!-- 명판 사진 등록: 클릭 즉시 등록 액션 (완료되면 체크+블루톤으로 전환) -->
-        <div class="choice-btn" id="photoBtn" onclick="registerPhoto()">
-          <div class="choice-icon" id="photoIcon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          </div>
-          <span class="choice-text">명판 사진 등록</span>
+        <div class="photo-btn" id="photoBtn" onclick="registerPhoto()" style="margin:0">
+          <svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M12 7v10M7 12h10" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+          <span>명판 사진을 추가해주세요.</span>
         </div>
         <div class="photo-thumb" id="photoThumb" style="display:none;margin:8px 0 0 0">
           <div class="photo-thumb-mini">
@@ -336,25 +319,35 @@
             <div class="mbar" style="width:45%"></div>
             <div class="mbar" style="width:70%"></div>
           </div>
-          <div class="photo-thumb-remove" onclick="event.stopPropagation();removePhoto()">
+          <div class="photo-thumb-remove" onclick="removePhoto()">
             <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
           </div>
         </div>
 
-        <!-- 가이드: 조건 없이 항상 노출 -->
-        <div class="photo-guide" style="margin:8px 0 0 0">
-          <div class="photo-guide-title">농업기계 형식표지판을 찾아 촬영해주세요.</div>
-          <div class="guide-frame">
-            <div class="plate-card">
-              <div class="bar-row"><div class="bar" style="width:50px"></div><div class="bar" style="width:140px"></div></div>
-              <div class="bar-row"><div class="bar" style="width:50px"></div><div class="bar" style="width:88px"></div></div>
-              <div class="highlight-row">
-                <span class="highlight-label">제조번호</span>
-                <span class="highlight-value">2306001788</span>
-                <div class="tooltip">이 부분을 촬영해주세요</div>
+        <!-- 촬영 가이드: 기본 접힘, 클릭 시 펼침/접힘 토글 -->
+        <div class="guide-toggle" id="guideToggle" onclick="toggleGuide()">
+          <div class="guide-toggle-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>
+          </div>
+          <span class="guide-toggle-text">명판 사진 촬영 가이드</span>
+          <svg class="guide-chevron" id="guideChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="guide-content" id="guideContent">
+          <div class="guide-caption">* 명판 사진 등록시 아래 내용을 참고하여 촬영 및 등록해주세요.</div>
+          <div class="photo-guide" style="margin:8px 0 0 0">
+            <div class="photo-guide-title">농업기계 형식표지판을 찾아 촬영해주세요.</div>
+            <div class="guide-frame">
+              <div class="plate-card">
+                <div class="bar-row"><div class="bar" style="width:50px"></div><div class="bar" style="width:140px"></div></div>
+                <div class="bar-row"><div class="bar" style="width:50px"></div><div class="bar" style="width:88px"></div></div>
+                <div class="highlight-row">
+                  <span class="highlight-label">제조번호</span>
+                  <span class="highlight-value">2306001788</span>
+                  <div class="tooltip">이 부분을 촬영해주세요</div>
+                </div>
+                <div class="bar-row"><div class="bar" style="width:50px"></div><div class="bar" style="width:112px"></div></div>
+                <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
               </div>
-              <div class="bar-row"><div class="bar" style="width:50px"></div><div class="bar" style="width:112px"></div></div>
-              <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
             </div>
           </div>
         </div>
@@ -422,29 +415,20 @@
             <div class="section-head" id="r-serialSectionHead" style="padding:0 0 24px 0">
               <div class="field-label-row">
                 <div class="section-title">제조 정보</div>
-                <div class="skip-link" id="r-skip-serial" onclick="rSkipField('serial')">건너뛸게요</div>
               </div>
-              <div class="section-desc">제조번호를 등록해주세요.</div>
+              <div class="section-desc">제조번호 및 명판 사진을 등록해주세요.</div>
             </div>
 
             <div class="field-group" style="padding:0;gap:8px">
-              <div class="choice-btn manual-choice" id="r-manualBox" onclick="rExpandManualInput()">
-                <div class="choice-row">
-                  <div class="choice-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                  </div>
-                  <span class="choice-text">제조번호 직접 입력</span>
-                </div>
-                <div class="manual-input-wrap" id="r-manualInputWrap">
-                  <div class="input-box" id="r-box-serial" onclick="event.stopPropagation()"><input type="text" placeholder="제조번호를 입력하세요" id="r-input-serial" oninput="rTextInput('serial')"></div>
-                </div>
+              <div class="field-label-row">
+                <div class="field-label">제조번호</div>
+                <div class="skip-link" id="r-skip-serial" onclick="rSkipField('serial')">건너뛸게요</div>
               </div>
+              <div class="input-box" id="r-box-serial"><input type="text" placeholder="제조번호를 입력하세요" id="r-input-serial" oninput="rTextInput('serial')"></div>
 
-              <div class="choice-btn" id="r-photoBtn" onclick="rRegisterPhoto()">
-                <div class="choice-icon" id="r-photoIcon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                </div>
-                <span class="choice-text">명판 사진 등록</span>
+              <div class="photo-btn" id="r-photoBtn" onclick="rRegisterPhoto()" style="margin:0">
+                <svg viewBox="0 0 24 24" width="24" height="24"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M12 7v10M7 12h10" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+                <span>명판 사진을 추가해주세요.</span>
               </div>
               <div class="photo-thumb" id="r-photoThumb" style="display:none;margin:8px 0 0 0">
                 <div class="photo-thumb-mini">
@@ -453,24 +437,34 @@
                   <div class="mbar" style="width:45%"></div>
                   <div class="mbar" style="width:70%"></div>
                 </div>
-                <div class="photo-thumb-remove" onclick="event.stopPropagation();rRemovePhoto()">
+                <div class="photo-thumb-remove" onclick="rRemovePhoto()">
                   <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
                 </div>
               </div>
 
-              <div class="photo-guide" style="margin:8px 0 0 0">
-                <div class="photo-guide-title">농업기계 형식표지판을 찾아 촬영해주세요.</div>
-                <div class="guide-frame">
-                  <div class="plate-card">
-                    <div class="bar-row"><div class="bar" style="width:50px"></div><div class="bar" style="width:140px"></div></div>
-                    <div class="bar-row"><div class="bar" style="width:50px"></div><div class="bar" style="width:88px"></div></div>
-                    <div class="highlight-row">
-                      <span class="highlight-label">제조번호</span>
-                      <span class="highlight-value">2306001788</span>
-                      <div class="tooltip">이 부분을 촬영해주세요</div>
+              <div class="guide-toggle" id="r-guideToggle" onclick="rToggleGuide()">
+                <div class="guide-toggle-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>
+                </div>
+                <span class="guide-toggle-text">명판 사진 촬영 가이드</span>
+                <svg class="guide-chevron" id="r-guideChevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M6 9l6 6 6-6"/></svg>
+              </div>
+              <div class="guide-content" id="r-guideContent">
+                <div class="guide-caption">* 명판 사진 등록시 아래 내용을 참고하여 촬영 및 등록해주세요.</div>
+                <div class="photo-guide" style="margin:8px 0 0 0">
+                  <div class="photo-guide-title">농업기계 형식표지판을 찾아 촬영해주세요.</div>
+                  <div class="guide-frame">
+                    <div class="plate-card">
+                      <div class="bar-row"><div class="bar" style="width:50px"></div><div class="bar" style="width:140px"></div></div>
+                      <div class="bar-row"><div class="bar" style="width:50px"></div><div class="bar" style="width:88px"></div></div>
+                      <div class="highlight-row">
+                        <span class="highlight-label">제조번호</span>
+                        <span class="highlight-value">2306001788</span>
+                        <div class="tooltip">이 부분을 촬영해주세요</div>
+                      </div>
+                      <div class="bar-row"><div class="bar" style="width:50px"></div><div class="bar" style="width:112px"></div></div>
+                      <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
                     </div>
-                    <div class="bar-row"><div class="bar" style="width:50px"></div><div class="bar" style="width:112px"></div></div>
-                    <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
                   </div>
                 </div>
               </div>
@@ -545,7 +539,7 @@ const data = {
   hours:'', year:'',
   store:'', storeSkipped:false,
   date:'', dateSkipped:false,
-  serial:'', serialSkipped:false, photoDone:false, manualOpen:false,
+  serial:'', serialSkipped:false, photoDone:false, guideOpen:false,
   hp:'', nick:''
 };
 
@@ -649,7 +643,7 @@ function prefillStep(n){
     document.getElementById('input-serial').value = data.serial;
     document.getElementById('input-serial').placeholder = data.serialSkipped ? '나중에 입력' : '제조번호를 입력하세요';
     styleTextField('serial');
-    document.getElementById('manualBox').classList.toggle('expanded', data.manualOpen);
+    setGuideUI('main', data.guideOpen);
     refreshSerialSkipVisibility();
     setPhotoRegisteredUI('main', data.photoDone);
   }
@@ -726,37 +720,36 @@ function scrollElementIntoView(elId, focusRatio){
   });
 }
 
-/* 제조번호 직접 입력: 클릭 시 같은 박스 안에 인풋이 펼쳐짐. 한 번 펼쳐지면 접는 기능은 없음(선택 사항이라 비워둬도 무방) */
-function expandManualInput(){
-  if(data.manualOpen) return; // 이미 펼쳐진 상태 - 접지 않음
-  data.manualOpen = true;
-  document.getElementById('manualBox').classList.add('expanded');
-  scrollElementIntoView('box-serial', 0.4);
+/* 명판 사진 촬영 가이드: 기본 접힘, 클릭 시 펼침/접힘 토글 (열림 상태는 메인/리뷰 공용으로 공유) */
+function setGuideUI(context, open){
+  const isReview = context === 'review';
+  const toggle = document.getElementById(isReview ? 'r-guideToggle' : 'guideToggle');
+  const content = document.getElementById(isReview ? 'r-guideContent' : 'guideContent');
+  if(!toggle) return;
+  toggle.classList.toggle('open', open);
+  content.classList.toggle('open', open);
 }
-function rExpandManualInput(){
-  if(data.manualOpen) return;
-  data.manualOpen = true;
-  document.getElementById('r-manualBox').classList.add('expanded');
-  scrollElementIntoView('r-box-serial', 0.4);
+function toggleGuide(){
+  data.guideOpen = !data.guideOpen;
+  setGuideUI('main', data.guideOpen);
+}
+function rToggleGuide(){
+  data.guideOpen = !data.guideOpen;
+  setGuideUI('review', data.guideOpen);
 }
 
-/* 명판 사진 등록: 클릭 즉시 등록 액션. 완료되면 체크 아이콘 + 블루톤(완료 요약카드와 동일 언어)으로 전환 */
-const PHOTO_ICON_CAMERA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>';
-const PHOTO_ICON_CHECK = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.2928 5.29314C20.6833 4.90261 21.3163 4.90261 21.7068 5.29314C22.0973 5.68367 22.0973 6.3167 21.7068 6.7072L9.70683 18.7072C9.31632 19.0975 8.68322 19.0976 8.29277 18.7072L2.29277 12.7072C1.90233 12.3168 1.90249 11.6837 2.29277 11.2931C2.6833 10.9026 3.31631 10.9026 3.70683 11.2931L8.9998 16.5861L20.2928 5.29314Z" fill="currentColor"/></svg>';
-
+/* 명판 사진 등록: 클릭 즉시 등록 액션. 완료되면 버튼이 비활성화(회색)되고 아래 썸네일이 노출됨 */
 function setPhotoRegisteredUI(context, done){
   const isReview = context === 'review';
   const btn = document.getElementById(isReview ? 'r-photoBtn' : 'photoBtn');
-  const icon = document.getElementById(isReview ? 'r-photoIcon' : 'photoIcon');
   const thumb = document.getElementById(isReview ? 'r-photoThumb' : 'photoThumb');
   if(!btn) return;
-  btn.classList.toggle('checked', done);
-  icon.innerHTML = done ? PHOTO_ICON_CHECK : PHOTO_ICON_CAMERA;
+  btn.classList.toggle('disabled', done);
   thumb.style.display = done ? 'flex' : 'none';
 }
 
 function registerPhoto(){
-  if(data.photoDone) return; // 이미 등록됨 - 버튼 클릭은 무시, 삭제는 X로만
+  if(data.photoDone) return; // 이미 등록됨 - 버튼은 비활성화, 삭제는 X로만
   data.photoDone = true;
   setPhotoRegisteredUI('main', true);
   refreshSerialSkipVisibility();
@@ -793,12 +786,10 @@ function skipField(key){
   }
   if(key === 'serial'){
     data.serial = '';
-    data.manualOpen = false;
     data.photoDone = false;
     document.getElementById('input-serial').value = '';
     document.getElementById('input-serial').placeholder = '나중에 입력';
     styleTextField('serial');
-    document.getElementById('manualBox').classList.remove('expanded');
     setPhotoRegisteredUI('main', false);
     document.getElementById('skip-serial').style.visibility = 'hidden';
     maybeAutoAdvance(); // 제조 정보는 섹션 전체 스킵 = 스텝 완료 조건 충족 → 바로 다음 페이지로
@@ -818,7 +809,13 @@ function summaryHTML1(){
   const parts = [];
   if(data.hours) parts.push(data.hours+'시간');
   if(data.year) parts.push(data.year);
-  return {label:'운행시간 및 연식', value: parts.join(' · '), skipped:false};
+  const incomplete = !(data.hours && data.year);
+  return {
+    label:'운행시간 및 연식',
+    value: incomplete ? '필수 정보를 입력해 주세요.' : parts.join(' · '),
+    skipped:false,
+    error: incomplete
+  };
 }
 function summaryHTML2(){
   const storePart = data.store ? data.store : '<span class="sv-skipped">나중에 입력</span>';
@@ -845,9 +842,12 @@ const summaryMap = {1:summaryHTML1, 2:summaryHTML2, 3:summaryHTML3, 4:summaryHTM
 
 function cardInnerHTML(s, editAction){
   const d = summaryMap[s]();
+  const checkIcon = d.error
+    ? '<div class="summary-check error-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 8v5M12 16.5v.01" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg></div>'
+    : '<div class="summary-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.2928 5.29314C20.6833 4.90261 21.3163 4.90261 21.7068 5.29314C22.0973 5.68367 22.0973 6.3167 21.7068 6.7072L9.70683 18.7072C9.31632 19.0975 8.68322 19.0976 8.29277 18.7072L2.29277 12.7072C1.90233 12.3168 1.90249 11.6837 2.29277 11.2931C2.6833 10.9026 3.31631 10.9026 3.70683 11.2931L8.9998 16.5861L20.2928 5.29314Z" fill="currentColor"/></svg></div>';
   return `
-    <div class="summary-banner${d.skipped?' skipped':''}">
-      <div class="summary-check"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.2928 5.29314C20.6833 4.90261 21.3163 4.90261 21.7068 5.29314C22.0973 5.68367 22.0973 6.3167 21.7068 6.7072L9.70683 18.7072C9.31632 19.0975 8.68322 19.0976 8.29277 18.7072L2.29277 12.7072C1.90233 12.3168 1.90249 11.6837 2.29277 11.2931C2.6833 10.9026 3.31631 10.9026 3.70683 11.2931L8.9998 16.5861L20.2928 5.29314Z" fill="currentColor"/></svg></div>
+    <div class="summary-banner${d.skipped?' skipped':''}${d.error?' error':''}">
+      ${checkIcon}
       <div class="summary-text">
         <div class="summary-label">${d.label}</div>
         <div class="summary-value">${d.value}</div>
@@ -920,7 +920,7 @@ function rPrefill(s){
     document.getElementById('r-input-serial').value = data.serial;
     document.getElementById('r-input-serial').placeholder = data.serialSkipped ? '나중에 입력' : '제조번호를 입력하세요';
     document.getElementById('r-box-serial').classList.toggle('filled', !!data.serial);
-    document.getElementById('r-manualBox').classList.toggle('expanded', data.manualOpen);
+    setGuideUI('review', data.guideOpen);
     rRefreshSerialSkipVisibility();
     setPhotoRegisteredUI('review', data.photoDone);
   }
@@ -942,6 +942,7 @@ function rHpNickInput(key){
 function rHoursInput(){
   data.hours = document.getElementById('r-input-hours').value.trim();
   document.getElementById('r-box-hours').classList.toggle('filled', !!data.hours);
+  if(currentStep === 4) renderFooter();
 }
 
 function rTextInput(key){
@@ -968,12 +969,10 @@ function rSkipField(key){
   }
   if(key === 'serial'){
     data.serial = '';
-    data.manualOpen = false;
     data.photoDone = false;
     document.getElementById('r-input-serial').value = '';
     document.getElementById('r-input-serial').placeholder = '나중에 입력';
     document.getElementById('r-box-serial').classList.remove('filled');
-    document.getElementById('r-manualBox').classList.remove('expanded');
     setPhotoRegisteredUI('review', false);
     document.getElementById('r-skip-serial').style.visibility = 'hidden';
     return;
@@ -1007,7 +1006,8 @@ function renderFooter(){
     const enabled = isStepComplete(currentStep) && !autoAdvancePending;
     footer.innerHTML = `<div class="cta-btn${enabled?'':' disabled'}" onclick="goNext()">다음</div>`;
   } else if(currentStep === 4){
-    footer.innerHTML = `<div class="cta-btn" onclick="onSubmit()">등록하기</div>`;
+    const enabled = isStepComplete(1);
+    footer.innerHTML = `<div class="cta-btn${enabled?'':' disabled'}" onclick="onSubmit()">등록하기</div>`;
   } else {
     footer.innerHTML = `<div class="cta-btn" onclick="goNext()">다음</div>`;
   }
